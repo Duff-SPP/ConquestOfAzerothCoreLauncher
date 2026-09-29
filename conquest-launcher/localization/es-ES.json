@@ -678,5 +678,6 @@
   "Notifications, update available": "Notificaciones, actualización disponible",
   "Added update notifications for client releases and launcher updates.": "Se añadieron notificaciones para las versiones del cliente y las actualizaciones del launcher.",
   "Launcher update progress": "Progreso de actualización del launcher",
-  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "Se añadió soporte multilingüe al launcher con selección de idioma guardada para inglés, francés, español, ruso y chino simplificado."
+  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "Se añadió soporte multilingüe al launcher con selección de idioma guardada para inglés, francés, español, ruso y chino simplificado.",
+  "Added launcher theme changing.": "Se añadió el cambio de tema del launcher."
 }

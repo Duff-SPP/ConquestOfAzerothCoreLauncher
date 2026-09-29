@@ -678,5 +678,6 @@
   "Notifications, update available": "Уведомления, доступно обновление",
   "Added update notifications for client releases and launcher updates.": "Добавлены уведомления об обновлениях клиента и лаунчера.",
   "Launcher update progress": "Ход обновления лаунчера",
-  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "Добавлена многоязычная поддержка лаунчера с сохранением выбранного языка: английского, французского, испанского, русского и упрощённого китайского."
+  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "Добавлена многоязычная поддержка лаунчера с сохранением выбранного языка: английского, французского, испанского, русского и упрощённого китайского.",
+  "Added launcher theme changing.": "Добавлена смена темы лаунчера."
 }

@@ -679,7 +679,8 @@ launcherI18n.register("fr", "Français", {
   "Notifications, update available": "Notifications, mise à jour disponible",
   "Added update notifications for client releases and launcher updates.": "Ajout de notifications pour les mises à jour du client et du lanceur.",
   "Launcher update progress": "Progression de la mise à jour du lanceur",
-  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "Ajout de la prise en charge multilingue du lanceur avec mémorisation de la langue sélectionnée pour l’anglais, le français, l’espagnol, le russe et le chinois simplifié."
+  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "Ajout de la prise en charge multilingue du lanceur avec mémorisation de la langue sélectionnée pour l’anglais, le français, l’espagnol, le russe et le chinois simplifié.",
+  "Added launcher theme changing.": "Ajout du changement de thème du lanceur."
 }, true);
 launcherI18n.register("es-ES", "Español", {
   "A dragon above a burning Azeroth landscape": "Un dragón sobre un paisaje de Azeroth en llamas",
@@ -1361,7 +1362,8 @@ launcherI18n.register("es-ES", "Español", {
   "Notifications, update available": "Notificaciones, actualización disponible",
   "Added update notifications for client releases and launcher updates.": "Se añadieron notificaciones para las versiones del cliente y las actualizaciones del launcher.",
   "Launcher update progress": "Progreso de actualización del launcher",
-  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "Se añadió soporte multilingüe al launcher con selección de idioma guardada para inglés, francés, español, ruso y chino simplificado."
+  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "Se añadió soporte multilingüe al launcher con selección de idioma guardada para inglés, francés, español, ruso y chino simplificado.",
+  "Added launcher theme changing.": "Se añadió el cambio de tema del launcher."
 }, true);
 launcherI18n.register("ru", "Русский", {
   "A dragon above a burning Azeroth landscape": "Дракон над пылающими землями Азерота",
@@ -2043,7 +2045,8 @@ launcherI18n.register("ru", "Русский", {
   "Notifications, update available": "Уведомления, доступно обновление",
   "Added update notifications for client releases and launcher updates.": "Добавлены уведомления об обновлениях клиента и лаунчера.",
   "Launcher update progress": "Ход обновления лаунчера",
-  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "Добавлена многоязычная поддержка лаунчера с сохранением выбранного языка: английского, французского, испанского, русского и упрощённого китайского."
+  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "Добавлена многоязычная поддержка лаунчера с сохранением выбранного языка: английского, французского, испанского, русского и упрощённого китайского.",
+  "Added launcher theme changing.": "Добавлена смена темы лаунчера."
 }, true);
 launcherI18n.register("zh-CN", "简体中文", {
   "A dragon above a burning Azeroth landscape": "巨龙翱翔在燃烧的艾泽拉斯上空",
@@ -2725,5 +2728,6 @@ launcherI18n.register("zh-CN", "简体中文", {
   "Notifications, update available": "通知，有可用更新",
   "Added update notifications for client releases and launcher updates.": "新增客户端版本和启动器更新通知。",
   "Launcher update progress": "启动器更新进度",
-  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "新增启动器多语言支持，并可保存英语、法语、西班牙语、俄语和简体中文的语言选择。"
+  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "新增启动器多语言支持，并可保存英语、法语、西班牙语、俄语和简体中文的语言选择。",
+  "Added launcher theme changing.": "新增启动器主题切换功能。"
 }, true);

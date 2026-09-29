@@ -678,5 +678,6 @@
   "Notifications, update available": "通知，有可用更新",
   "Added update notifications for client releases and launcher updates.": "新增客户端版本和启动器更新通知。",
   "Launcher update progress": "启动器更新进度",
-  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "新增启动器多语言支持，并可保存英语、法语、西班牙语、俄语和简体中文的语言选择。"
+  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "新增启动器多语言支持，并可保存英语、法语、西班牙语、俄语和简体中文的语言选择。",
+  "Added launcher theme changing.": "新增启动器主题切换功能。"
 }

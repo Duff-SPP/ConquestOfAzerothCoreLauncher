@@ -15,7 +15,8 @@ const required = [
   "Improved download, verification, preparation, cancellation, resume, and progress handling.",
   "Introduced automatic required-addon installation; this behavior was later removed in version 0.6.5.",
   "Added launcher file ownership tracking and safer preservation during install, upgrade, and uninstall.",
-  "Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play."
+  "Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play.",
+  "Added launcher theme changing."
 ];
 
 test('saved language restores the shell and release history is localized', async () => {
@@ -25,7 +26,7 @@ test('saved language restores the shell and release history is localized', async
   assert.match(app, /launcherI18n\.setLanguage\(state\.settings\.language\);[\s\S]*?refreshLanguageShell\(\);/);
   assert.doesNotMatch(app, /addon\.mandatory \? ' · Mandatory'/);
 
-  for (const version of ['0.6.8', '0.6.7', '0.6.6', '0.6.5', '0.6.4', '0.6.3', '0.6.2', '0.6.1']) {
+  for (const version of ['0.6.9', '0.6.8', '0.6.7', '0.6.6', '0.6.5', '0.6.4', '0.6.3', '0.6.2', '0.6.1']) {
     assert.match(app, new RegExp("version: '" + version.replaceAll('.', '\\.') + "'"));
   }
 
