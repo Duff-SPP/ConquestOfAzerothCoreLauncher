@@ -5,7 +5,7 @@ const defaults = Object.freeze({ language: 'en', startPage: 'home', closeOnLaunc
 function sanitize(value) {
   const result = { ...defaults };
   if (!value || typeof value !== 'object') return result;
-  if (['en', 'fr', 'ru', 'zh-CN'].includes(value.language)) result.language = value.language;
+  if (['en', 'fr', 'es-ES', 'ru', 'zh-CN'].includes(value.language)) result.language = value.language;
   if (['home', 'news'].includes(value.startPage)) result.startPage = value.startPage;
   for (const key of ['closeOnLaunch', 'rememberClient', 'reducedMotion', 'sound']) {
     if (typeof value[key] === 'boolean') result[key] = value[key];

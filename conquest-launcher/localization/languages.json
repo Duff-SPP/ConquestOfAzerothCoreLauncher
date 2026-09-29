@@ -5,6 +5,11 @@
     "complete": true
   },
   {
+    "code": "es-ES",
+    "name": "Español",
+    "complete": true
+  },
+  {
     "code": "ru",
     "name": "Русский",
     "complete": true

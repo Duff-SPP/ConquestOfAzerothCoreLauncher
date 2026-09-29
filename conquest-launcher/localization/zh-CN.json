@@ -652,7 +652,6 @@
   "Registration is temporarily unavailable.": "注册暂时不可用。",
   "Mandatory": "必需",
   "Release history from version 0.6.1 onward.": "0.6.1 及之后版本的更新历史。",
-  "Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.": "新增启动器多语言支持，并可保存英语、法语、俄语和简体中文的语言选择。",
   "Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.": "改进安装器和卸载器的文件归属、锁定、注册与构建处理，更好地保护玩家文件。",
   "Improved production bundle protection while preserving launcher update compatibility.": "加强生产构建保护，同时保持启动器更新兼容性。",
   "Added optional minimum launcher compatibility checks and expanded downloader regression coverage.": "新增可选的最低启动器版本兼容性检查，并扩展下载器回归测试覆盖。",
@@ -678,5 +677,6 @@
   "Launcher and client updates will appear here when action is needed.": "当需要操作时，启动器和客户端更新会显示在这里。",
   "Notifications, update available": "通知，有可用更新",
   "Added update notifications for client releases and launcher updates.": "新增客户端版本和启动器更新通知。",
-  "Launcher update progress": "启动器更新进度"
+  "Launcher update progress": "启动器更新进度",
+  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "新增启动器多语言支持，并可保存英语、法语、西班牙语、俄语和简体中文的语言选择。"
 }

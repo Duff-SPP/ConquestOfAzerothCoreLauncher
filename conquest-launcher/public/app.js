@@ -60,7 +60,7 @@ const changelogEntries = [
   {
     version: '0.6.8',
     items: [
-      'Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.',
+      'Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.',
       'Added update notifications for client releases and launcher updates.',
       'Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.',
       'Improved production bundle protection while preserving launcher update compatibility.'

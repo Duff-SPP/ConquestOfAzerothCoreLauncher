@@ -652,7 +652,6 @@
   "Registration is temporarily unavailable.": "L’inscription est temporairement indisponible.",
   "Mandatory": "Obligatoire",
   "Release history from version 0.6.1 onward.": "Historique des versions depuis la 0.6.1.",
-  "Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.": "Ajout de la prise en charge multilingue du lanceur avec mémorisation de la langue sélectionnée pour l’anglais, le français, le russe et le chinois simplifié.",
   "Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.": "Amélioration de la gestion de la propriété des fichiers, des verrouillages, de l’enregistrement et de la compilation de l’installateur et du désinstallateur afin de mieux protéger les fichiers des joueurs.",
   "Improved production bundle protection while preserving launcher update compatibility.": "Renforcement de la protection du bundle de production tout en conservant la compatibilité avec les mises à jour du lanceur.",
   "Added optional minimum launcher compatibility checks and expanded downloader regression coverage.": "Ajout de contrôles facultatifs de version minimale du lanceur et extension de la couverture des régressions du téléchargeur.",
@@ -678,5 +677,6 @@
   "Launcher and client updates will appear here when action is needed.": "Les mises à jour du lanceur et du client apparaîtront ici lorsqu’une action sera nécessaire.",
   "Notifications, update available": "Notifications, mise à jour disponible",
   "Added update notifications for client releases and launcher updates.": "Ajout de notifications pour les mises à jour du client et du lanceur.",
-  "Launcher update progress": "Progression de la mise à jour du lanceur"
+  "Launcher update progress": "Progression de la mise à jour du lanceur",
+  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "Ajout de la prise en charge multilingue du lanceur avec mémorisation de la langue sélectionnée pour l’anglais, le français, l’espagnol, le russe et le chinois simplifié."
 }

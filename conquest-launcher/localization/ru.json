@@ -652,7 +652,6 @@
   "Registration is temporarily unavailable.": "Регистрация временно недоступна.",
   "Mandatory": "Обязательный",
   "Release history from version 0.6.1 onward.": "История версий начиная с 0.6.1.",
-  "Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.": "Добавлена многоязычная поддержка лаунчера с сохранением выбранного языка: английского, французского, русского и упрощённого китайского.",
   "Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.": "Улучшена обработка принадлежности файлов, блокировок, регистрации и сборки установщика и деинсталлятора для лучшей защиты файлов игроков.",
   "Improved production bundle protection while preserving launcher update compatibility.": "Усилена защита производственной сборки с сохранением совместимости с обновлениями лаунчера.",
   "Added optional minimum launcher compatibility checks and expanded downloader regression coverage.": "Добавлены необязательные проверки минимальной версии лаунчера и расширено регрессионное тестирование загрузчика.",
@@ -678,5 +677,6 @@
   "Launcher and client updates will appear here when action is needed.": "Обновления лаунчера и клиента появятся здесь, когда потребуется действие.",
   "Notifications, update available": "Уведомления, доступно обновление",
   "Added update notifications for client releases and launcher updates.": "Добавлены уведомления об обновлениях клиента и лаунчера.",
-  "Launcher update progress": "Ход обновления лаунчера"
+  "Launcher update progress": "Ход обновления лаунчера",
+  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.": "Добавлена многоязычная поддержка лаунчера с сохранением выбранного языка: английского, французского, испанского, русского и упрощённого китайского."
 }

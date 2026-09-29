@@ -6,7 +6,7 @@ const path = require('node:path');
 const required = [
   "Mandatory",
   "Release history from version 0.6.1 onward.",
-  "Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.",
+  "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.",
   "Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.",
   "Improved production bundle protection while preserving launcher update compatibility.",
   "Added optional minimum launcher compatibility checks and expanded downloader regression coverage.",
@@ -29,7 +29,7 @@ test('saved language restores the shell and release history is localized', async
     assert.match(app, new RegExp("version: '" + version.replaceAll('.', '\\.') + "'"));
   }
 
-  for (const code of ['fr', 'ru', 'zh-CN']) {
+  for (const code of ['fr', 'es-ES', 'ru', 'zh-CN']) {
     const catalog = JSON.parse(await fs.readFile(path.join(root, 'localization', code + '.json'), 'utf8'));
     for (const key of required) {
       assert.equal(typeof catalog[key], 'string', code + ' is missing: ' + key);

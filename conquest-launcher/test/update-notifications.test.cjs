@@ -50,7 +50,7 @@ test('notification bell reflects existing client and launcher updater state', as
   const french = JSON.parse(await fs.readFile(path.join(root, 'localization', 'fr.json'), 'utf8'));
   assert.equal(french.READY, 'PRÊT');
 
-  for (const code of ['fr', 'ru', 'zh-CN']) {
+  for (const code of ['fr', 'es-ES', 'ru', 'zh-CN']) {
     const catalog = JSON.parse(await fs.readFile(path.join(root, 'localization', code + '.json'), 'utf8'));
     for (const key of required) {
       assert.equal(typeof catalog[key], 'string', code + ' is missing: ' + key);
