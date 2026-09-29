@@ -677,5 +677,6 @@
   "No update notifications.": "没有更新通知。",
   "Launcher and client updates will appear here when action is needed.": "当需要操作时，启动器和客户端更新会显示在这里。",
   "Notifications, update available": "通知，有可用更新",
-  "Added update notifications for client releases and launcher updates.": "新增客户端版本和启动器更新通知。"
+  "Added update notifications for client releases and launcher updates.": "新增客户端版本和启动器更新通知。",
+  "Launcher update progress": "启动器更新进度"
 }

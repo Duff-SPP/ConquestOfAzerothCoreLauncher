@@ -23,7 +23,8 @@ const required = [
   "No update notifications.",
   "Launcher and client updates will appear here when action is needed.",
   "Notifications, update available",
-  "Added update notifications for client releases and launcher updates."
+  "Added update notifications for client releases and launcher updates.",
+  "Launcher update progress"
 ];
 
 test('notification bell reflects existing client and launcher updater state', async () => {
@@ -42,6 +43,12 @@ test('notification bell reflects existing client and launcher updater state', as
   assert.match(updates, /data-action="launcher-install"/);
   assert.match(updates, /state\.clientUpdatePlan = await api\.checkClient\(false\)/);
   assert.match(updates, /dot\.hidden = !actionable/);
+  assert.match(updates, /t\('UPDATE READY'\)/);
+  assert.match(updates, /<progress class="notification-progress"/);
+  assert.doesNotMatch(updates, /notification-progress[^\n]*style=/);
+
+  const french = JSON.parse(await fs.readFile(path.join(root, 'localization', 'fr.json'), 'utf8'));
+  assert.equal(french.READY, 'PRÊT');
 
   for (const code of ['fr', 'ru', 'zh-CN']) {
     const catalog = JSON.parse(await fs.readFile(path.join(root, 'localization', code + '.json'), 'utf8'));

@@ -677,5 +677,6 @@
   "No update notifications.": "Нет уведомлений об обновлениях.",
   "Launcher and client updates will appear here when action is needed.": "Обновления лаунчера и клиента появятся здесь, когда потребуется действие.",
   "Notifications, update available": "Уведомления, доступно обновление",
-  "Added update notifications for client releases and launcher updates.": "Добавлены уведомления об обновлениях клиента и лаунчера."
+  "Added update notifications for client releases and launcher updates.": "Добавлены уведомления об обновлениях клиента и лаунчера.",
+  "Launcher update progress": "Ход обновления лаунчера"
 }

@@ -266,7 +266,7 @@
   "Products and availability from your project.": "Produits et disponibilités de votre projet.",
   "Project service": "Service du projet",
   "Quest": "Quête",
-  "READY": "PRÊTE",
+  "READY": "PRÊT",
   "Reading addon catalog…": "Lecture du catalogue d’addons…",
   "Reading the live GitHub issue tracker.": "Lecture des signalements GitHub en direct.",
   "Ready to explore the test realm": "Prêt à explorer le royaume de test",
@@ -677,5 +677,6 @@
   "No update notifications.": "Aucune notification de mise à jour.",
   "Launcher and client updates will appear here when action is needed.": "Les mises à jour du lanceur et du client apparaîtront ici lorsqu’une action sera nécessaire.",
   "Notifications, update available": "Notifications, mise à jour disponible",
-  "Added update notifications for client releases and launcher updates.": "Ajout de notifications pour les mises à jour du client et du lanceur."
+  "Added update notifications for client releases and launcher updates.": "Ajout de notifications pour les mises à jour du client et du lanceur.",
+  "Launcher update progress": "Progression de la mise à jour du lanceur"
 }

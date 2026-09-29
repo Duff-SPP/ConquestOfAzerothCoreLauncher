@@ -267,7 +267,7 @@ launcherI18n.register("fr", "Français", {
   "Products and availability from your project.": "Produits et disponibilités de votre projet.",
   "Project service": "Service du projet",
   "Quest": "Quête",
-  "READY": "PRÊTE",
+  "READY": "PRÊT",
   "Reading addon catalog…": "Lecture du catalogue d’addons…",
   "Reading the live GitHub issue tracker.": "Lecture des signalements GitHub en direct.",
   "Ready to explore the test realm": "Prêt à explorer le royaume de test",
@@ -678,7 +678,8 @@ launcherI18n.register("fr", "Français", {
   "No update notifications.": "Aucune notification de mise à jour.",
   "Launcher and client updates will appear here when action is needed.": "Les mises à jour du lanceur et du client apparaîtront ici lorsqu’une action sera nécessaire.",
   "Notifications, update available": "Notifications, mise à jour disponible",
-  "Added update notifications for client releases and launcher updates.": "Ajout de notifications pour les mises à jour du client et du lanceur."
+  "Added update notifications for client releases and launcher updates.": "Ajout de notifications pour les mises à jour du client et du lanceur.",
+  "Launcher update progress": "Progression de la mise à jour du lanceur"
 }, true);
 launcherI18n.register("ru", "Русский", {
   "A dragon above a burning Azeroth landscape": "Дракон над пылающими землями Азерота",
@@ -1359,7 +1360,8 @@ launcherI18n.register("ru", "Русский", {
   "No update notifications.": "Нет уведомлений об обновлениях.",
   "Launcher and client updates will appear here when action is needed.": "Обновления лаунчера и клиента появятся здесь, когда потребуется действие.",
   "Notifications, update available": "Уведомления, доступно обновление",
-  "Added update notifications for client releases and launcher updates.": "Добавлены уведомления об обновлениях клиента и лаунчера."
+  "Added update notifications for client releases and launcher updates.": "Добавлены уведомления об обновлениях клиента и лаунчера.",
+  "Launcher update progress": "Ход обновления лаунчера"
 }, true);
 launcherI18n.register("zh-CN", "简体中文", {
   "A dragon above a burning Azeroth landscape": "巨龙翱翔在燃烧的艾泽拉斯上空",
@@ -2040,5 +2042,6 @@ launcherI18n.register("zh-CN", "简体中文", {
   "No update notifications.": "没有更新通知。",
   "Launcher and client updates will appear here when action is needed.": "当需要操作时，启动器和客户端更新会显示在这里。",
   "Notifications, update available": "通知，有可用更新",
-  "Added update notifications for client releases and launcher updates.": "新增客户端版本和启动器更新通知。"
+  "Added update notifications for client releases and launcher updates.": "新增客户端版本和启动器更新通知。",
+  "Launcher update progress": "启动器更新进度"
 }, true);
