@@ -649,5 +649,17 @@
   "Your test account has been created.": "测试账户已创建。",
   "That account name is already in use.": "此账户名已被使用。",
   "That email address is already attached to an account.": "此电子邮箱已关联其他账户。",
-  "Registration is temporarily unavailable.": "注册暂时不可用。"
+  "Registration is temporarily unavailable.": "注册暂时不可用。",
+  "Mandatory": "必需",
+  "Release history from version 0.6.1 onward.": "0.6.1 及之后版本的更新历史。",
+  "Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.": "新增启动器多语言支持，并可保存英语、法语、俄语和简体中文的语言选择。",
+  "Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.": "改进安装器和卸载器的文件归属、锁定、注册与构建处理，更好地保护玩家文件。",
+  "Improved production bundle protection while preserving launcher update compatibility.": "加强生产构建保护，同时保持启动器更新兼容性。",
+  "Added optional minimum launcher compatibility checks and expanded downloader regression coverage.": "新增可选的最低启动器版本兼容性检查，并扩展下载器回归测试覆盖。",
+  "Improved addon backup and recovery, dependency handling, stale inventory refresh, and realm setup retry behavior.": "改进插件备份与恢复、依赖处理、过期清单刷新以及服务器配置重试。",
+  "Added player addon inventory and removed automatic required-addon synchronization so custom addons stay under player control.": "新增玩家插件清单，并移除自动同步必需插件的行为，让自定义插件继续由玩家自行控制。",
+  "Improved download, verification, preparation, cancellation, resume, and progress handling.": "改进下载、验证、准备、取消、续传和进度显示。",
+  "Introduced automatic required-addon installation; this behavior was later removed in version 0.6.5.": "引入自动安装必需插件；该行为随后在 0.6.5 版本中移除。",
+  "Added launcher file ownership tracking and safer preservation during install, upgrade, and uninstall.": "新增启动器文件归属跟踪，并在安装、升级和卸载时提供更安全的文件保留机制。",
+  "Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play.": "改进文件夹选择和安装流程，保留 MemoryBridge.log，并使更新完成到可开始游戏的过渡更加顺畅。"
 }

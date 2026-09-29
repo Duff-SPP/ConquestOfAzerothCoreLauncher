@@ -56,6 +56,58 @@ const articles = [
   { id: 'journey', category: 'DEVELOPMENT', title: 'Building the journey ahead', summary: 'Follow the development of Conquest of AzerothCore.', image: 'landscape.webp', body: ['Follow development updates, changelogs, and community announcements here.', 'Check back for the latest project news.'] },
   { id: 'community', category: 'COMMUNITY', title: 'Your adventure. Our community.', summary: 'Find your guild, share your stories, and stay connected.', image: 'trailer.jpg', body: ['Azeroth is better together. Join the Conquest of AzerothCore community on Discord.', 'Use the Discord button to meet other players and stay connected.'] }
 ];
+const changelogEntries = [
+  {
+    version: '0.6.8',
+    items: [
+      'Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.',
+      'Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.',
+      'Improved production bundle protection while preserving launcher update compatibility.'
+    ]
+  },
+  {
+    version: '0.6.7',
+    items: [
+      'Added optional minimum launcher compatibility checks and expanded downloader regression coverage.'
+    ]
+  },
+  {
+    version: '0.6.6',
+    items: [
+      'Improved addon backup and recovery, dependency handling, stale inventory refresh, and realm setup retry behavior.'
+    ]
+  },
+  {
+    version: '0.6.5',
+    items: [
+      'Added player addon inventory and removed automatic required-addon synchronization so custom addons stay under player control.'
+    ]
+  },
+  {
+    version: '0.6.4',
+    items: [
+      'Improved download, verification, preparation, cancellation, resume, and progress handling.'
+    ]
+  },
+  {
+    version: '0.6.3',
+    items: [
+      'Introduced automatic required-addon installation; this behavior was later removed in version 0.6.5.'
+    ]
+  },
+  {
+    version: '0.6.2',
+    items: [
+      'Added launcher file ownership tracking and safer preservation during install, upgrade, and uninstall.'
+    ]
+  },
+  {
+    version: '0.6.1',
+    items: [
+      'Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play.'
+    ]
+  }
+];
 const emptyConfig = { name: 'Conquest of AzerothCore', links: {} };
 const defaultSettings = { language: 'en', startPage: 'home', closeOnLaunch: false, rememberClient: true, reducedMotion: false, sound: true, installPath: '' };
 let previewSettings;
@@ -151,12 +203,15 @@ modal.addEventListener('click', event => { if (event.target === modal) { const b
 const modalHeader = (title, subtitle = '') => lh`<div class="modal-header"><div><h2 id="modal-title">${escape(title)}</h2>${subtitle ? lh`<p>${escape(subtitle)}</p>` : ''}</div><button class="modal-close" data-action="dismiss-modal" aria-label="Close dialog">×</button></div>`;
 const titleBlock = (title, description, badge = '') => lh`<div class="page-topline"><div><div class="eyebrow">Conquest of AzerothCore</div><h1 class="page-title">${title}</h1><p class="page-description">${description}</p></div>${badge ? lh`<span class="page-tag">${badge}</span>` : ''}</div>`;
 function newsCard(article) { return lh`<button class="news-card" data-article="${article.id}"><div class="news-art"><img src="assets/${article.image}" alt="" loading="eager"><span class="news-category">${t(article.category)}</span></div><div class="news-copy"><div class="news-date">Conquest of AzerothCore</div><h3>${t(article.title)}</h3><p>${t(article.summary)}</p></div></button>`; }
+function changelogHtml() {
+  return lh`<div class="changelog-history"><p class="changelog-intro">${t('Release history from version 0.6.1 onward.')}</p>${changelogEntries.map(entry => lh`<div class="changelog-item"><small>LAUNCHER · v${escape(entry.version)}</small><h3>${lt`Version ${entry.version}`}</h3><ul class="changelog-list">${entry.items.map(item => lh`<li>${t(item)}</li>`).join('')}</ul></div>`).join('')}</div>`;
+}
 function homePage() {
   const installed = state.client.installed;
   return lh`<div class="home-page"><section class="hero-grid"><div class="hero-copy"><div class="eyebrow">Your world. Your adventure.</div><h1>Conquest of<br>AzerothCore</h1><p class="hero-description">Return to the world that started it all.<br>Begin your next chapter in Azeroth.</p><div class="client-controls"><div class="client-label"><span>Conquest of AzerothCore</span><span>${installed ? t('Client selected') : 'World of Warcraft'}</span></div><div class="play-row"><button class="play-button" data-action="play">${icon(installed ? 'play' : 'download')}<span class="play-text"><span class="play-title">${state.client.running ? t('Playing') : installed ? t('Play') : t('Download')}</span><span class="play-subtitle">${state.client.running ? t('Your adventure is underway') : installed ? t('Enter Azeroth') : t('Begin your adventure')}</span></span></button><button class="play-options" data-action="play-options" aria-label="Game options">⌄</button></div><button class="locate-client" data-action="choose-client">${icon('folder')}${installed ? launcherI18n.html('<span>Change game location</span>') : launcherI18n.html('Already installed? <span>Locate game</span>')}</button></div></div><aside class="hero-side"><fieldset class="trailer-panel"><legend>A world of adventure</legend><button class="trailer-button" data-action="trailer" aria-label="Watch the trailer"><img src="assets/trailer.jpg" alt="A dragon above a burning Azeroth landscape"><span class="trailer-play"><span>${icon('play')}</span></span><span class="trailer-caption">YOUR NEXT CHAPTER AWAITS</span></button></fieldset><button class="discord-card" data-action="discord"><span class="discord-crest discord-crest-image"><img src="assets/ascension-emblem.webp" alt=""></span><span class="discord-name">Conquest<span><small>Join our community</small></span></span><span class="discord-link">${icon('discord')} DISCORD ${icon('external')}</span></button></aside></section><section class="news-section"><div class="section-heading"><h2>Latest news</h2><span class="heading-rule"></span><button data-page="news">View all news ${icon('arrow')}</button></div><div class="news-grid">${articles.map(newsCard).join('')}</div></section></div>`;
 }
 function newsPage() {
-  return lh`<div class="content-page">${titleBlock(t('News & updates'), t('The latest from your world. Announcements, development, and community stories.'), 'CONQUEST OF AZEROTHCORE')}<div class="tabs" role="tablist" aria-label="News categories"><button role="tab" aria-selected="${state.newsTab === 'latest'}" class="tab ${state.newsTab === 'latest' ? 'active' : ''}" data-news-tab="latest">Latest news</button><button role="tab" aria-selected="${state.newsTab === 'changelog'}" class="tab ${state.newsTab === 'changelog' ? 'active' : ''}" data-news-tab="changelog">Changelog</button></div>${state.newsTab === 'latest' ? lh`<div class="news-page-grid">${articles.map(newsCard).join('')}</div>` : lh`<div class="changelog-item"><small>LAUNCHER · v${escape(state.version)}</small><h3>Version ${escape(state.version)}</h3><p>Addon repairs preserve modified files in verified backups. Custom dependencies are reused, folder changes refresh the inventory, and damaged ownership records allow read-only scanning. Realm setup errors no longer leave update progress stuck. Automatic addon installation remains disabled.</p></div>`}</div>`;
+  return lh`<div class="content-page">${titleBlock(t('News & updates'), t('The latest from your world. Announcements, development, and community stories.'), 'CONQUEST OF AZEROTHCORE')}<div class="tabs" role="tablist" aria-label="News categories"><button role="tab" aria-selected="${state.newsTab === 'latest'}" class="tab ${state.newsTab === 'latest' ? 'active' : ''}" data-news-tab="latest">Latest news</button><button role="tab" aria-selected="${state.newsTab === 'changelog'}" class="tab ${state.newsTab === 'changelog' ? 'active' : ''}" data-news-tab="changelog">Changelog</button></div>${state.newsTab === 'latest' ? lh`<div class="news-page-grid">${articles.map(newsCard).join('')}</div>` : changelogHtml()}</div>`;
 }
 const services = {
   store: { title: 'Store', description: 'Discover what your project has to offer.', icon: 'store', heading: 'Your store, right here', body: 'The store will connect to your Conquest of AzerothCore website. Products and account balances will appear when your store service is ready.', action: 'Open store' },
@@ -288,7 +343,7 @@ function addonCardsHtml() {
     const modules = addon.folders.length === 1 ? t('1 addon folder') : lt`${addon.folders.length} addon folders`;
     const shownVersion = addon.catalog === false ? addon.installedVersion : addon.version;
     const version = shownVersion ? `v${escape(shownVersion)}` : t('Version not listed');
-    return lh`<article class="addon-card"><div class="addon-card-top"><div class="addon-emblem">${icon('addons')}</div><div class="addon-card-heading"><div class="addon-name-row"><h3>${escape(addon.name)}${addon.mandatory ? ' · Mandatory' : ''}</h3><span class="addon-status ${status.className}">${escape(status.label)}</span></div><div class="addon-meta"><span>${escape(addon.category)}</span><span>·</span><span>${version}</span><span>·</span><span>${modules}</span></div></div></div><p>${escape(tm(addon.description))}</p><div class="addon-card-footer"><button class="ghost-button addon-details-button" data-addon-details="${escape(addon.id)}">Details</button><div class="addon-card-actions">${installed && addon.managed && !addon.mandatory ? lh`<button class="ghost-button danger-soft" data-addon-uninstall="${escape(addon.id)}" ${disabled}>Uninstall</button>` : ''}${addon.catalog !== false && (!installed || addon.managed) ? lh`<button class="${installed ? 'secondary-button' : 'gold-button'}" data-addon-install="${escape(addon.id)}" ${disabled}>${icon(installed ? 'refresh' : 'download')}${actionLabel}</button>` : ''}</div></div></article>`;
+    return lh`<article class="addon-card"><div class="addon-card-top"><div class="addon-emblem">${icon('addons')}</div><div class="addon-card-heading"><div class="addon-name-row"><h3>${escape(addon.name)}${addon.mandatory ? ' · ' + t('Mandatory') : ''}</h3><span class="addon-status ${status.className}">${escape(status.label)}</span></div><div class="addon-meta"><span>${escape(addon.category)}</span><span>·</span><span>${version}</span><span>·</span><span>${modules}</span></div></div></div><p>${escape(tm(addon.description))}</p><div class="addon-card-footer"><button class="ghost-button addon-details-button" data-addon-details="${escape(addon.id)}">Details</button><div class="addon-card-actions">${installed && addon.managed && !addon.mandatory ? lh`<button class="ghost-button danger-soft" data-addon-uninstall="${escape(addon.id)}" ${disabled}>Uninstall</button>` : ''}${addon.catalog !== false && (!installed || addon.managed) ? lh`<button class="${installed ? 'secondary-button' : 'gold-button'}" data-addon-install="${escape(addon.id)}" ${disabled}>${icon(installed ? 'refresh' : 'download')}${actionLabel}</button>` : ''}</div></div></article>`;
   }).join('');
 }
 function addonCategories() {
@@ -734,6 +789,7 @@ async function start() {
     launcherI18n.setLanguage(state.settings.language);
     state.page = state.settings.startPage || 'home';
     document.body.classList.toggle('motion-reduced', state.settings.reducedMotion);
+    refreshLanguageShell();
   } catch (error) { toast(lt`Could not load launcher settings: ${tm(error.message)}`); }
   render();
 }

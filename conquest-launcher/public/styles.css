@@ -159,3 +159,10 @@ html:not([lang="en"]) .button-row,html:not([lang="en"]) .modal-footer{flex-wrap:
 html:not([lang="en"]) .setting-title,html:not([lang="en"]) .setting-description{overflow-wrap:anywhere}
 html:lang(ru){--display:Georgia,"Segoe UI",serif}
 html:lang(zh-CN){--ui:"Microsoft YaHei UI","Microsoft YaHei","Segoe UI",sans-serif;--display:"Microsoft YaHei","Segoe UI",sans-serif}
+
+
+/* Launcher release history. */
+.changelog-history{max-width:820px}
+.changelog-intro{margin:0 0 22px 30px;color:#c6ad8f;font-size:12px}
+.changelog-list{margin:8px 0 0;padding-left:18px;color:#bba48a}
+.changelog-list li{margin:5px 0;font-size:12px;line-height:1.65}

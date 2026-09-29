@@ -650,7 +650,19 @@ launcherI18n.register("fr", "Français", {
   "Your test account has been created.": "Votre compte de test a été créé.",
   "That account name is already in use.": "Ce nom de compte est déjà utilisé.",
   "That email address is already attached to an account.": "Cette adresse e-mail est déjà associée à un compte.",
-  "Registration is temporarily unavailable.": "L’inscription est temporairement indisponible."
+  "Registration is temporarily unavailable.": "L’inscription est temporairement indisponible.",
+  "Mandatory": "Obligatoire",
+  "Release history from version 0.6.1 onward.": "Historique des versions depuis la 0.6.1.",
+  "Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.": "Ajout de la prise en charge multilingue du lanceur avec mémorisation de la langue sélectionnée pour l’anglais, le français, le russe et le chinois simplifié.",
+  "Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.": "Amélioration de la gestion de la propriété des fichiers, des verrouillages, de l’enregistrement et de la compilation de l’installateur et du désinstallateur afin de mieux protéger les fichiers des joueurs.",
+  "Improved production bundle protection while preserving launcher update compatibility.": "Renforcement de la protection du bundle de production tout en conservant la compatibilité avec les mises à jour du lanceur.",
+  "Added optional minimum launcher compatibility checks and expanded downloader regression coverage.": "Ajout de contrôles facultatifs de version minimale du lanceur et extension de la couverture des régressions du téléchargeur.",
+  "Improved addon backup and recovery, dependency handling, stale inventory refresh, and realm setup retry behavior.": "Amélioration de la sauvegarde et de la restauration des addons, de la gestion des dépendances, de l’actualisation des inventaires obsolètes et des nouvelles tentatives de configuration du royaume.",
+  "Added player addon inventory and removed automatic required-addon synchronization so custom addons stay under player control.": "Ajout de l’inventaire des addons du joueur et suppression de la synchronisation automatique des addons requis afin que les addons personnalisés restent sous le contrôle du joueur.",
+  "Improved download, verification, preparation, cancellation, resume, and progress handling.": "Amélioration du téléchargement, de la vérification, de la préparation, de l’annulation, de la reprise et de l’affichage de la progression.",
+  "Introduced automatic required-addon installation; this behavior was later removed in version 0.6.5.": "Introduction de l’installation automatique des addons requis ; ce comportement a ensuite été supprimé dans la version 0.6.5.",
+  "Added launcher file ownership tracking and safer preservation during install, upgrade, and uninstall.": "Ajout du suivi de propriété des fichiers du lanceur et d’une conservation plus sûre lors de l’installation, de la mise à niveau et de la désinstallation.",
+  "Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play.": "Amélioration de la sélection du dossier et du processus d’installation, conservation de MemoryBridge.log et transition plus fluide entre la mise à jour et l’état prêt à jouer."
 }, true);
 launcherI18n.register("ru", "Русский", {
   "A dragon above a burning Azeroth landscape": "Дракон над пылающими землями Азерота",
@@ -1303,7 +1315,19 @@ launcherI18n.register("ru", "Русский", {
   "Your test account has been created.": "Тестовая учётная запись создана.",
   "That account name is already in use.": "Это имя учётной записи уже занято.",
   "That email address is already attached to an account.": "Этот адрес электронной почты уже связан с учётной записью.",
-  "Registration is temporarily unavailable.": "Регистрация временно недоступна."
+  "Registration is temporarily unavailable.": "Регистрация временно недоступна.",
+  "Mandatory": "Обязательный",
+  "Release history from version 0.6.1 onward.": "История версий начиная с 0.6.1.",
+  "Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.": "Добавлена многоязычная поддержка лаунчера с сохранением выбранного языка: английского, французского, русского и упрощённого китайского.",
+  "Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.": "Улучшена обработка принадлежности файлов, блокировок, регистрации и сборки установщика и деинсталлятора для лучшей защиты файлов игроков.",
+  "Improved production bundle protection while preserving launcher update compatibility.": "Усилена защита производственной сборки с сохранением совместимости с обновлениями лаунчера.",
+  "Added optional minimum launcher compatibility checks and expanded downloader regression coverage.": "Добавлены необязательные проверки минимальной версии лаунчера и расширено регрессионное тестирование загрузчика.",
+  "Improved addon backup and recovery, dependency handling, stale inventory refresh, and realm setup retry behavior.": "Улучшены резервное копирование и восстановление аддонов, обработка зависимостей, обновление устаревшего инвентаря и повторная настройка реалма.",
+  "Added player addon inventory and removed automatic required-addon synchronization so custom addons stay under player control.": "Добавлен инвентарь пользовательских аддонов и удалена автоматическая синхронизация обязательных аддонов, чтобы пользовательские аддоны оставались под контролем игрока.",
+  "Improved download, verification, preparation, cancellation, resume, and progress handling.": "Улучшены загрузка, проверка, подготовка, отмена, возобновление и отображение прогресса.",
+  "Introduced automatic required-addon installation; this behavior was later removed in version 0.6.5.": "Добавлена автоматическая установка обязательных аддонов; это поведение позже было удалено в версии 0.6.5.",
+  "Added launcher file ownership tracking and safer preservation during install, upgrade, and uninstall.": "Добавлено отслеживание файлов, принадлежащих лаунчеру, и более безопасное сохранение данных при установке, обновлении и удалении.",
+  "Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play.": "Улучшены выбор папки и процесс установки, сохранение MemoryBridge.log и переход от обновления к готовности к игре."
 }, true);
 launcherI18n.register("zh-CN", "简体中文", {
   "A dragon above a burning Azeroth landscape": "巨龙翱翔在燃烧的艾泽拉斯上空",
@@ -1956,5 +1980,17 @@ launcherI18n.register("zh-CN", "简体中文", {
   "Your test account has been created.": "测试账户已创建。",
   "That account name is already in use.": "此账户名已被使用。",
   "That email address is already attached to an account.": "此电子邮箱已关联其他账户。",
-  "Registration is temporarily unavailable.": "注册暂时不可用。"
+  "Registration is temporarily unavailable.": "注册暂时不可用。",
+  "Mandatory": "必需",
+  "Release history from version 0.6.1 onward.": "0.6.1 及之后版本的更新历史。",
+  "Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.": "新增启动器多语言支持，并可保存英语、法语、俄语和简体中文的语言选择。",
+  "Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.": "改进安装器和卸载器的文件归属、锁定、注册与构建处理，更好地保护玩家文件。",
+  "Improved production bundle protection while preserving launcher update compatibility.": "加强生产构建保护，同时保持启动器更新兼容性。",
+  "Added optional minimum launcher compatibility checks and expanded downloader regression coverage.": "新增可选的最低启动器版本兼容性检查，并扩展下载器回归测试覆盖。",
+  "Improved addon backup and recovery, dependency handling, stale inventory refresh, and realm setup retry behavior.": "改进插件备份与恢复、依赖处理、过期清单刷新以及服务器配置重试。",
+  "Added player addon inventory and removed automatic required-addon synchronization so custom addons stay under player control.": "新增玩家插件清单，并移除自动同步必需插件的行为，让自定义插件继续由玩家自行控制。",
+  "Improved download, verification, preparation, cancellation, resume, and progress handling.": "改进下载、验证、准备、取消、续传和进度显示。",
+  "Introduced automatic required-addon installation; this behavior was later removed in version 0.6.5.": "引入自动安装必需插件；该行为随后在 0.6.5 版本中移除。",
+  "Added launcher file ownership tracking and safer preservation during install, upgrade, and uninstall.": "新增启动器文件归属跟踪，并在安装、升级和卸载时提供更安全的文件保留机制。",
+  "Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play.": "改进文件夹选择和安装流程，保留 MemoryBridge.log，并使更新完成到可开始游戏的过渡更加顺畅。"
 }, true);

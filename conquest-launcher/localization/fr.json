@@ -649,5 +649,17 @@
   "Your test account has been created.": "Votre compte de test a été créé.",
   "That account name is already in use.": "Ce nom de compte est déjà utilisé.",
   "That email address is already attached to an account.": "Cette adresse e-mail est déjà associée à un compte.",
-  "Registration is temporarily unavailable.": "L’inscription est temporairement indisponible."
+  "Registration is temporarily unavailable.": "L’inscription est temporairement indisponible.",
+  "Mandatory": "Obligatoire",
+  "Release history from version 0.6.1 onward.": "Historique des versions depuis la 0.6.1.",
+  "Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.": "Ajout de la prise en charge multilingue du lanceur avec mémorisation de la langue sélectionnée pour l’anglais, le français, le russe et le chinois simplifié.",
+  "Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.": "Amélioration de la gestion de la propriété des fichiers, des verrouillages, de l’enregistrement et de la compilation de l’installateur et du désinstallateur afin de mieux protéger les fichiers des joueurs.",
+  "Improved production bundle protection while preserving launcher update compatibility.": "Renforcement de la protection du bundle de production tout en conservant la compatibilité avec les mises à jour du lanceur.",
+  "Added optional minimum launcher compatibility checks and expanded downloader regression coverage.": "Ajout de contrôles facultatifs de version minimale du lanceur et extension de la couverture des régressions du téléchargeur.",
+  "Improved addon backup and recovery, dependency handling, stale inventory refresh, and realm setup retry behavior.": "Amélioration de la sauvegarde et de la restauration des addons, de la gestion des dépendances, de l’actualisation des inventaires obsolètes et des nouvelles tentatives de configuration du royaume.",
+  "Added player addon inventory and removed automatic required-addon synchronization so custom addons stay under player control.": "Ajout de l’inventaire des addons du joueur et suppression de la synchronisation automatique des addons requis afin que les addons personnalisés restent sous le contrôle du joueur.",
+  "Improved download, verification, preparation, cancellation, resume, and progress handling.": "Amélioration du téléchargement, de la vérification, de la préparation, de l’annulation, de la reprise et de l’affichage de la progression.",
+  "Introduced automatic required-addon installation; this behavior was later removed in version 0.6.5.": "Introduction de l’installation automatique des addons requis ; ce comportement a ensuite été supprimé dans la version 0.6.5.",
+  "Added launcher file ownership tracking and safer preservation during install, upgrade, and uninstall.": "Ajout du suivi de propriété des fichiers du lanceur et d’une conservation plus sûre lors de l’installation, de la mise à niveau et de la désinstallation.",
+  "Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play.": "Amélioration de la sélection du dossier et du processus d’installation, conservation de MemoryBridge.log et transition plus fluide entre la mise à jour et l’état prêt à jouer."
 }

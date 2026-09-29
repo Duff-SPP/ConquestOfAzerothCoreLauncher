@@ -649,5 +649,17 @@
   "Your test account has been created.": "Тестовая учётная запись создана.",
   "That account name is already in use.": "Это имя учётной записи уже занято.",
   "That email address is already attached to an account.": "Этот адрес электронной почты уже связан с учётной записью.",
-  "Registration is temporarily unavailable.": "Регистрация временно недоступна."
+  "Registration is temporarily unavailable.": "Регистрация временно недоступна.",
+  "Mandatory": "Обязательный",
+  "Release history from version 0.6.1 onward.": "История версий начиная с 0.6.1.",
+  "Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.": "Добавлена многоязычная поддержка лаунчера с сохранением выбранного языка: английского, французского, русского и упрощённого китайского.",
+  "Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.": "Улучшена обработка принадлежности файлов, блокировок, регистрации и сборки установщика и деинсталлятора для лучшей защиты файлов игроков.",
+  "Improved production bundle protection while preserving launcher update compatibility.": "Усилена защита производственной сборки с сохранением совместимости с обновлениями лаунчера.",
+  "Added optional minimum launcher compatibility checks and expanded downloader regression coverage.": "Добавлены необязательные проверки минимальной версии лаунчера и расширено регрессионное тестирование загрузчика.",
+  "Improved addon backup and recovery, dependency handling, stale inventory refresh, and realm setup retry behavior.": "Улучшены резервное копирование и восстановление аддонов, обработка зависимостей, обновление устаревшего инвентаря и повторная настройка реалма.",
+  "Added player addon inventory and removed automatic required-addon synchronization so custom addons stay under player control.": "Добавлен инвентарь пользовательских аддонов и удалена автоматическая синхронизация обязательных аддонов, чтобы пользовательские аддоны оставались под контролем игрока.",
+  "Improved download, verification, preparation, cancellation, resume, and progress handling.": "Улучшены загрузка, проверка, подготовка, отмена, возобновление и отображение прогресса.",
+  "Introduced automatic required-addon installation; this behavior was later removed in version 0.6.5.": "Добавлена автоматическая установка обязательных аддонов; это поведение позже было удалено в версии 0.6.5.",
+  "Added launcher file ownership tracking and safer preservation during install, upgrade, and uninstall.": "Добавлено отслеживание файлов, принадлежащих лаунчеру, и более безопасное сохранение данных при установке, обновлении и удалении.",
+  "Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play.": "Улучшены выбор папки и процесс установки, сохранение MemoryBridge.log и переход от обновления к готовности к игре."
 }
