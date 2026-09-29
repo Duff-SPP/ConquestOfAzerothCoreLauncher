@@ -661,5 +661,21 @@
   "Improved download, verification, preparation, cancellation, resume, and progress handling.": "Улучшены загрузка, проверка, подготовка, отмена, возобновление и отображение прогресса.",
   "Introduced automatic required-addon installation; this behavior was later removed in version 0.6.5.": "Добавлена автоматическая установка обязательных аддонов; это поведение позже было удалено в версии 0.6.5.",
   "Added launcher file ownership tracking and safer preservation during install, upgrade, and uninstall.": "Добавлено отслеживание файлов, принадлежащих лаунчеру, и более безопасное сохранение данных при установке, обновлении и удалении.",
-  "Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play.": "Улучшены выбор папки и процесс установки, сохранение MemoryBridge.log и переход от обновления к готовности к игре."
+  "Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play.": "Улучшены выбор папки и процесс установки, сохранение MemoryBridge.log и переход от обновления к готовности к игре.",
+  "Launcher and client updates": "Обновления лаунчера и клиента",
+  "Client update": "Обновление клиента",
+  "AVAILABLE": "ДОСТУПНО",
+  "An updated client release is ready to download.": "Новая версия клиента готова к загрузке.",
+  "{0} files · {1}": "{0} файлов · {1}",
+  "Update now": "Обновить",
+  "Launcher update": "Обновление лаунчера",
+  "Launcher {0}": "Лаунчер {0}",
+  "Launcher update ready": "Обновление лаунчера готово",
+  "Restart the launcher to install the downloaded update.": "Перезапустите лаунчер, чтобы установить загруженное обновление.",
+  "DOWNLOADING": "ЗАГРУЗКА",
+  "Launcher update downloading": "Загрузка обновления лаунчера",
+  "No update notifications.": "Нет уведомлений об обновлениях.",
+  "Launcher and client updates will appear here when action is needed.": "Обновления лаунчера и клиента появятся здесь, когда потребуется действие.",
+  "Notifications, update available": "Уведомления, доступно обновление",
+  "Added update notifications for client releases and launcher updates.": "Добавлены уведомления об обновлениях клиента и лаунчера."
 }

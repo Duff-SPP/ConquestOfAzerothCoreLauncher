@@ -1,9 +1,54 @@
 'use strict';
 state.clientProgress = state.clientProgress || { phase: 'idle', message: t('Checking client service…') };
 state.launcherUpdate = state.launcherUpdate || { phase: 'idle', message: '' };
+state.clientUpdatePlan = state.clientUpdatePlan || null;
+state.launcherUpdateVersion = state.launcherUpdate?.version || '';
 state.account = null;
 const clientBusy = () => ['checking', 'downloading', 'verifying', 'staging', 'applying', 'finalizing', 'installing-required-addons', 'pausing'].includes(state.clientProgress.phase);
 const sizeLabel = value => value >= 1024 ** 3 ? `${(value / 1024 ** 3).toFixed(2)} GB` : `${(value / 1024 ** 2).toFixed(1)} MB`;
+
+function notificationCenterHtml() {
+  const items = [];
+  const clientAvailable = state.client?.installed && state.clientProgress.phase === 'available';
+  const launcherDownloading = state.launcherUpdate.phase === 'downloading';
+  const launcherReady = state.launcherUpdate.phase === 'downloaded';
+
+  if (clientAvailable) {
+    const plan = state.clientUpdatePlan;
+    const version = state.clientProgress.version || plan?.version || '';
+    let detail = t('An updated client release is ready to download.');
+    if (plan?.needsUpdate && Number.isInteger(plan.files) && Number.isFinite(plan.bytes)) {
+      detail = lt`${plan.files} files · ${sizeLabel(plan.bytes)}`;
+    }
+    items.push(lh`<section class="notification-item notification-item-actionable"><div class="notification-item-head"><span class="notification-type">${t('Client update')}</span><span class="notification-state">${t('AVAILABLE')}</span></div><strong>${version ? escape(lt`Release ${version}`) : t('Client update available')}</strong><p>${escape(detail)}</p><div class="notification-actions"><button class="gold-button" data-action="check-updates">${icon('download')}${t('Update now')}</button></div></section>`);
+  }
+
+  if (launcherReady) {
+    const version = state.launcherUpdate.version || state.launcherUpdateVersion || '';
+    items.push(lh`<section class="notification-item notification-item-actionable"><div class="notification-item-head"><span class="notification-type">${t('Launcher update')}</span><span class="notification-state">${t('READY')}</span></div><strong>${version ? escape(lt`Launcher ${version}`) : t('Launcher update ready')}</strong><p>${escape(tm(state.launcherUpdate.message) || t('Restart the launcher to install the downloaded update.'))}</p><div class="notification-actions"><button class="gold-button" data-action="launcher-install">${icon('refresh')}${t('Restart & update')}</button></div></section>`);
+  } else if (launcherDownloading) {
+    const percent = Number.isFinite(state.launcherUpdate.percent) ? Math.max(0, Math.min(100, Math.floor(state.launcherUpdate.percent))) : null;
+    const version = state.launcherUpdate.version || state.launcherUpdateVersion || '';
+    items.push(lh`<section class="notification-item"><div class="notification-item-head"><span class="notification-type">${t('Launcher update')}</span><span class="notification-state">${t('DOWNLOADING')}</span></div><strong>${version ? escape(lt`Launcher ${version}`) : t('Launcher update downloading')}</strong><p>${escape(tm(state.launcherUpdate.message) || t('Downloading launcher update…'))}</p>${percent === null ? '' : lh`<div class="notification-progress"><span style="width:${percent}%"></span></div><small>${percent}%</small>`}</section>`);
+  }
+
+  return lh`<div class="popover-heading">${t('Notifications')}</div><div class="notification-subtitle">${t('Launcher and client updates')}</div><hr>${items.length ? lh`<div class="notification-list">${items.join('')}</div>` : lh`<div class="notification-empty">${icon('check')}<strong>${t('No update notifications.')}</strong><span>${t('Launcher and client updates will appear here when action is needed.')}</span></div>`}`;
+}
+
+function updateNotificationCenter() {
+  const dot = document.querySelector('.notification-dot');
+  const actionable = (state.client?.installed && state.clientProgress.phase === 'available') || state.launcherUpdate.phase === 'downloaded';
+  if (dot) dot.hidden = !actionable;
+
+  const button = document.querySelector('[data-action="notifications"]');
+  if (button) button.setAttribute('aria-label', actionable ? t('Notifications, update available') : t('Notifications'));
+
+  if (popoverRoot.dataset.open === 'notifications' && popoverRoot.firstElementChild) {
+    popoverRoot.firstElementChild.innerHTML = notificationCenterHtml();
+    fillIcons(popoverRoot.firstElementChild);
+  }
+}
+window.launcherNotifications = { html: notificationCenterHtml };
 
 function updateControls() {
   const progress = state.clientProgress;
@@ -49,6 +94,7 @@ function updateControls() {
   const caption = document.querySelector('.preview-label');
   if (caption) caption.textContent = window.launcher ? (state.launcherUpdate.phase === 'downloaded' ? t('UPDATE READY') : '') : '';
   document.querySelector('.account-button')?.setAttribute('title', state.account ? lt`Signed in as ${state.account.username}` : t('Sign in to your game account'));
+  updateNotificationCenter();
 }
 const renderWithOriginalDesign = render;
 render = function () { renderWithOriginalDesign(); updateControls(); };
@@ -98,7 +144,7 @@ function startDownloadDemo() {
 async function performClientUpdate(force = false) {
   if (state.config.localDownloadDemo) { startDownloadDemo(); return; }
   closeModal(); state.page = 'home'; render();
-  try { state.client = await api.updateClient(force); render(); toast(t('Client ready. Enjoy Azeroth!')); }
+  try { state.client = await api.updateClient(force); state.clientUpdatePlan = null; render(); toast(t('Client ready. Enjoy Azeroth!')); }
   finally { state.client = await api.clientInfo(); updateControls(); }
 }
 pendingUpdate = async function (force = false) {
@@ -106,6 +152,7 @@ pendingUpdate = async function (force = false) {
   if (!state.client.path) { showInstall(); return; }
   closeModal();
   const plan = await api.checkClient(force);
+  state.clientUpdatePlan = plan;
   if (!plan.needsUpdate) { toast(plan.warnings?.length ? plan.warnings.join('\n') : t('Your client is up to date.')); return; }
   openModal(lh`${modalHeader(force ? t('Repair your client') : t('Client update available'), lt`Release ${plan.version}`)}<div class="modal-body"><p>${plan.files} files to download · ${sizeLabel(plan.bytes)}${plan.removed ? lt` · ${plan.removed} obsolete files to remove` : ''}</p><p>Game folder: ${escape(state.client.path)}</p><p>Your game must be closed while updating.</p></div><div class="modal-footer"><button class="secondary-button" data-action="dismiss-modal">Later</button><button class="gold-button" data-action="apply-client-update">Download & apply</button></div>`);
 };
@@ -154,10 +201,12 @@ actions.play = async () => {
 };
 if (window.launcher) {
   api.onClientProgress(progress => {
-    state.clientProgress = progress; updateControls();
+    state.clientProgress = progress;
+    if (progress.phase === 'ready') state.clientUpdatePlan = null;
+    updateControls();
     if (progress.phase === 'ready' && progress.warnings?.length) toast(progress.warnings.join('\n'));
   });
-  api.onLauncherUpdate(status => { state.launcherUpdate = status; updateControls(); if (status.phase === 'downloaded') toast(tm(status.message) + ' ' + t('Open Settings to restart.')); });
+  api.onLauncherUpdate(status => { state.launcherUpdate = status; if (status.version) state.launcherUpdateVersion = status.version; updateControls(); if (status.phase === 'downloaded') toast(tm(status.message) + ' ' + t('Open Settings to restart.')); });
   window.addEventListener('DOMContentLoaded', async () => {
     await api.bootstrap();
     const refreshDiscord = () => api.discord().then(data => { state.discord = data; updateControls(); }).catch(() => {});
@@ -172,7 +221,7 @@ if (window.launcher) {
     setInterval(refreshClient, 10000);
     api.account().then(account => { state.account = account; state.accountServiceAvailable = true; updateControls(); document.getElementById('connection-status').textContent = account ? lt`Signed in: ${account.username}` : t('Account service connected'); }).catch(() => { state.accountServiceAvailable = false; document.getElementById('connection-status').textContent = t('Account service unavailable'); });
     try {
-      if (!state.client.running) await api.checkClient(false);
+      if (!state.client.running) state.clientUpdatePlan = await api.checkClient(false);
       // Checking is automatic; downloading/applying always requires a player click.
     } catch (error) { state.clientProgress = { phase: 'error', message: tm(error.message) }; }
     updateControls();

@@ -166,3 +166,26 @@ html:lang(zh-CN){--ui:"Microsoft YaHei UI","Microsoft YaHei","Segoe UI",sans-ser
 .changelog-intro{margin:0 0 22px 30px;color:#c6ad8f;font-size:12px}
 .changelog-list{margin:8px 0 0;padding-left:18px;color:#bba48a}
 .changelog-list li{margin:5px 0;font-size:12px;line-height:1.65}
+
+
+/* Update notification center. */
+.notification-popover{width:340px;padding:8px}
+.notification-popover .popover-heading{padding:10px 10px 2px;font-family:var(--display);font-size:14px;color:#efd2a1}
+.notification-subtitle{padding:0 10px 10px;font-size:9px;color:#9f876d}
+.notification-list{display:flex;flex-direction:column;gap:7px}
+.notification-item{padding:11px;border:1px solid #9e744239;border-radius:6px;background:linear-gradient(135deg,#2a1b15db,#17100ee8)}
+.notification-item-actionable{border-color:#b9854d5c;background:linear-gradient(135deg,#322017ed,#1a110feb)}
+.notification-item-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+.notification-type{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#d4ad78}
+.notification-state{padding:2px 5px;border:1px solid #ae804c45;border-radius:999px;background:#9c6b2920;color:#e2bd83;font-size:7px;font-weight:700;letter-spacing:.08em}
+.notification-item>strong{display:block;color:#efd9b9;font-size:11px;line-height:1.45}
+.notification-item>p{margin-top:5px;color:#aa937a;font-size:9px;line-height:1.55}
+.notification-actions{display:flex;margin-top:9px}
+.notification-actions button{width:auto!important;min-height:31px;padding:7px 10px!important;font-size:9px!important;border-radius:4px}
+.notification-actions button svg{width:13px;height:13px}
+.notification-progress{height:5px;margin-top:9px;border-radius:999px;overflow:hidden;background:#100b08;border:1px solid #8e683b50}
+.notification-progress span{display:block;height:100%;background:linear-gradient(90deg,#95602e,#e2b566)}
+.notification-item>small{display:block;margin-top:4px;text-align:right;color:#a58e73;font-size:8px}
+.notification-empty{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;padding:24px 14px 20px;text-align:center;color:#9f8870}
+.notification-empty i{color:#b89461}.notification-empty i svg{width:22px;height:22px}
+.notification-empty strong{font-size:11px;color:#d1b797}.notification-empty span{max-width:260px;font-size:9px;line-height:1.55}

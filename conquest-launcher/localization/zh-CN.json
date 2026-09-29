@@ -661,5 +661,21 @@
   "Improved download, verification, preparation, cancellation, resume, and progress handling.": "改进下载、验证、准备、取消、续传和进度显示。",
   "Introduced automatic required-addon installation; this behavior was later removed in version 0.6.5.": "引入自动安装必需插件；该行为随后在 0.6.5 版本中移除。",
   "Added launcher file ownership tracking and safer preservation during install, upgrade, and uninstall.": "新增启动器文件归属跟踪，并在安装、升级和卸载时提供更安全的文件保留机制。",
-  "Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play.": "改进文件夹选择和安装流程，保留 MemoryBridge.log，并使更新完成到可开始游戏的过渡更加顺畅。"
+  "Improved folder selection and installation flow, preserved MemoryBridge.log, and smoothed the transition from updating to ready to play.": "改进文件夹选择和安装流程，保留 MemoryBridge.log，并使更新完成到可开始游戏的过渡更加顺畅。",
+  "Launcher and client updates": "启动器和客户端更新",
+  "Client update": "客户端更新",
+  "AVAILABLE": "可用",
+  "An updated client release is ready to download.": "新的客户端版本已可下载。",
+  "{0} files · {1}": "{0} 个文件 · {1}",
+  "Update now": "立即更新",
+  "Launcher update": "启动器更新",
+  "Launcher {0}": "启动器 {0}",
+  "Launcher update ready": "启动器更新已就绪",
+  "Restart the launcher to install the downloaded update.": "重启启动器以安装已下载的更新。",
+  "DOWNLOADING": "下载中",
+  "Launcher update downloading": "正在下载启动器更新",
+  "No update notifications.": "没有更新通知。",
+  "Launcher and client updates will appear here when action is needed.": "当需要操作时，启动器和客户端更新会显示在这里。",
+  "Notifications, update available": "通知，有可用更新",
+  "Added update notifications for client releases and launcher updates.": "新增客户端版本和启动器更新通知。"
 }

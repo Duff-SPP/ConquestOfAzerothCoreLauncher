@@ -61,6 +61,7 @@ const changelogEntries = [
     version: '0.6.8',
     items: [
       'Added multilingual launcher support with saved language selection for English, French, Russian, and Simplified Chinese.',
+      'Added update notifications for client releases and launcher updates.',
       'Improved installer and uninstaller ownership, locking, registration, and build handling to better protect player files.',
       'Improved production bundle protection while preserving launcher update compatibility.'
     ]
@@ -675,8 +676,10 @@ function showPopover(button, kind) {
   let content = '';
   if (kind === 'play-options') content = lh`<div class="popover-label">GAME OPTIONS</div><button data-action="choose-client">${icon('folder')}Locate game</button><button data-action="open-folder">${icon('external')}Open game folder</button><hr><button data-action="check-updates">${icon('refresh')}Check for updates</button><button data-action="repair">${icon('shield')}Scan & repair</button><hr><button data-action="game-settings">${icon('settings')}Game settings</button>`;
   else if (kind === 'realms') content = lh`<div class="popover-label">YOUR GAMES</div><button class="selected" data-action="select-realm"><span class="realm-icon realm-icon-image"><img src="assets/ascension-emblem.webp" alt=""></span>Conquest of AzerothCore${icon('check')}</button><div class="popover-note">Your project’s client and realm.</div>`;
-  else content = lh`<div class="popover-heading">Notifications</div><hr><div class="popover-note">No new notifications.</div>`;
-  popoverRoot.dataset.open = kind; popoverRoot.innerHTML = lh`<div class="popover">${content}</div>`;
+  else if (kind === 'notifications') content = window.launcherNotifications?.html?.() || lh`<div class="popover-heading">${t('Notifications')}</div><hr><div class="popover-note">${t('No new notifications.')}</div>`;
+  else content = '';
+  const className = kind === 'notifications' ? 'popover notification-popover' : 'popover';
+  popoverRoot.dataset.open = kind; popoverRoot.innerHTML = lh`<div class="${className}">${content}</div>`;
   const panel = popoverRoot.firstElementChild;
   // CSSOM placement is local trusted UI state, with no remote styles.
   const rect = button.getBoundingClientRect();
@@ -710,7 +713,7 @@ const actions = {
   },
   'play-options': element => showPopover(element, 'play-options'),
   realms: element => showPopover(element, 'realms'),
-  notifications: element => { document.querySelector('.notification-dot').hidden = true; showPopover(element, 'notifications'); },
+  notifications: element => showPopover(element, 'notifications'),
   'select-realm': () => { popoverRoot.innerHTML = ''; state.page = 'home'; render(); },
   account: showAccount,
   register: showRegister,
