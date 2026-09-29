@@ -1,0 +1,26 @@
+[Unit]
+Description=Conquest Independent Launcher Backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=coa-launcher
+Group=coa-launcher
+WorkingDirectory=/opt/coa-launcher-backend
+EnvironmentFile=/etc/coa-launcher-backend/backend.env
+ExecStart=/usr/bin/dotnet /opt/coa-launcher-backend/Conquest.Launcher.Backend.dll
+Restart=on-failure
+RestartSec=5
+StateDirectory=coa-launcher-backend
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/coa-launcher-backend
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

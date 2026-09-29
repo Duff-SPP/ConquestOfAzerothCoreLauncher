@@ -1,0 +1,109 @@
+{
+  "name": "conquest-of-azerothcore-launcher",
+  "version": "0.6.8",
+  "private": true,
+  "description": "Conquest of AzerothCore desktop launcher",
+  "author": "Conquest of AzerothCore",
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "preview": "node tools/preview.cjs",
+    "test": "node --test test/*.test.cjs",
+    "build": "electron-builder --win nsis --x64 --publish never && node tools/prepare-release.cjs",
+    "build:dir": "electron-builder --win --x64 --dir",
+    "publish:menu": "node tools/release-manager.cjs",
+    "publish:client": "node tools/publish-client.cjs",
+    "publish:launcher": "node tools/publish-launcher.cjs",
+    "package:vps": "node tools/package-vps.cjs",
+    "build:bundles": "node tools/production-bundles.cjs"
+  },
+  "devDependencies": {
+    "@electron/asar": "3.4.1",
+    "@electron/fuses": "1.8.0",
+    "electron": "44.3.0",
+    "electron-builder": "26.15.3",
+    "esbuild": "0.25.12",
+    "javascript-obfuscator": "4.1.1",
+    "resedit": "1.7.2"
+  },
+  "build": {
+    "appId": "com.conquestofazerothcore.launcher",
+    "productName": "Conquest of AzerothCore",
+    "executableName": "ConquestOfAzeroth",
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://launcher-api.coa-development.org/downloads/launcher/"
+      }
+    ],
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Conquest of AzerothCore",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "script": "build/safe-installer.nsi",
+      "include": "build/preserve-files.nsh"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "package.json",
+      "launcher.config.json",
+      "!**/*.map",
+      {
+        "from": ".production",
+        "to": ".",
+        "filter": [
+          "runtime/a.cjs",
+          "runtime/b.cjs",
+          "public/c.js",
+          "public/index.html",
+          "public/styles.css",
+          "public/assets/**/*",
+          "!**/*.map"
+        ]
+      }
+    ],
+    "asar": true,
+    "win": {
+      "target": "nsis",
+      "artifactName": "ConquestOfAzerothSetup-${version}.${ext}",
+      "icon": "public/assets/app-icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "signAndEditExecutable": true,
+      "signExecutable": false
+    },
+    "extraResources": [
+      {
+        "from": "src/assets/AddonCatalog",
+        "to": "AddonCatalog",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "afterSign": "tools/protected-package.cjs",
+    "extraMetadata": {
+      "main": "runtime/a.cjs"
+    },
+    "beforePack": "tools/production-bundles.cjs",
+    "electronFuses": {
+      "runAsNode": false,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true
+    }
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

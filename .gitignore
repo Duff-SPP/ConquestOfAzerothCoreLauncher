@@ -1,0 +1,135 @@
+# ============================================================
+# Conquest of AzerothCore Launcher - repository root
+# ============================================================
+
+# ------------------------------------------------------------
+# Root release / historical payloads
+# ------------------------------------------------------------
+/assets.zip
+/Conquest-Backend-Ubuntu-*.tar.gz
+/Conquest-Launcher-VPS-*.tar.gz
+/Conquest-VPS-*.tar.gz
+/Conquest-Launcher-Hotfix-*
+
+# ReadBridge is local tooling and contains runtime state/token files.
+/Conquest-Launcher-ChatGPT-ReadBridge-Tailscale-FRESH*
+/UpdateBatsForLauncher/
+/_AccountUI_Backups/
+
+# Website is a separate project from this launcher repository.
+/ConquestOfAzerothCore-Website/
+
+# ------------------------------------------------------------
+# Launcher generated / local output
+# ------------------------------------------------------------
+/conquest-launcher/node_modules/
+/conquest-launcher/.production/
+/conquest-launcher/dist/
+/conquest-launcher/out/
+/conquest-launcher/release/
+/conquest-launcher/launcher-release/
+/conquest-launcher/test-output/
+
+# Temporary localization working copies / generated inventory.
+/conquest-launcher/localization-work/
+/conquest-launcher/translation-inventory.json
+
+# Generated release checksum list.
+/conquest-launcher/SHA256SUMS.txt
+
+# Generated installer ownership inventories.
+# Keep the actual .nsi/.nsh installer source in build/.
+/conquest-launcher/build/coa-owned.txt
+/conquest-launcher/build/coa-dirs.txt
+
+# Addon payload is supplied separately.
+# Keep a README in this directory if one is added.
+/conquest-launcher/src/assets/AddonCatalog/*
+!/conquest-launcher/src/assets/AddonCatalog/README.md
+
+# ------------------------------------------------------------
+# Backend generated / deployment output
+# ------------------------------------------------------------
+/Conquest-Launcher-Backend/bin/
+/Conquest-Launcher-Backend/obj/
+/Conquest-Launcher-Backend/deploy/
+/Conquest-Launcher-Backend/local-preview*.log
+
+# Runtime backend configuration may contain live credentials.
+# Keep explicit example/sample configs only.
+/Conquest-Launcher-Backend/appsettings.json
+/Conquest-Launcher-Backend/appsettings.*.json
+!/Conquest-Launcher-Backend/appsettings.*.example.json
+!/Conquest-Launcher-Backend/appsettings.*.sample.json
+
+# ------------------------------------------------------------
+# Environment / secrets / signing material
+# ------------------------------------------------------------
+**/.env
+**/.env.*
+**/*.env
+**/*.env.*
+!**/.env.example
+!**/.env.sample
+!**/*.env.example
+!**/*.env.sample
+
+*.pem
+*.key
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.kdbx
+
+**/DataProtection-Keys/
+**/dataprotection-keys/
+
+# ------------------------------------------------------------
+# Runtime data / caches / logs
+# ------------------------------------------------------------
+*.log
+*.tmp
+*.temp
+*.db
+*.sqlite
+*.sqlite3
+*.map
+
+**/.cache/
+**/cache/
+**/Cache/
+**/temp/
+**/tmp/
+**/.full-local-preview*/
+
+# ------------------------------------------------------------
+# Generated installers / binary release artifacts
+# ------------------------------------------------------------
+*.exe
+*.msi
+*.msix
+*.blockmap
+*.7z
+*.rar
+
+# ------------------------------------------------------------
+# IDE / OS files
+# ------------------------------------------------------------
+.vs/
+.vscode/
+.idea/
+
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
