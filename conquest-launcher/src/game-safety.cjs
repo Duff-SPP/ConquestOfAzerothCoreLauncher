@@ -5,31 +5,31 @@ const path = require('node:path');
 const { safePath, statOrNull } = require('./release-format.cjs');
 const exec = promisify(execFile);
 
-async function isGameRunning(root) {
-  if (process.platform !== 'win32' || !root) return false;
+async function imageRunning(name, run) {
   const windowsRoot = process.env.SystemRoot || process.env.WINDIR || 'C:\\Windows';
-  const powershell = path.join(windowsRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
-  const script = `[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); $ErrorActionPreference = 'Stop'; Get-CimInstance Win32_Process -Filter "Name = 'Ascension.exe' OR Name = 'Wow.exe'" | Select-Object ExecutablePath | ConvertTo-Json -Compress`;
-  const { stdout } = await exec(powershell, ['-NoProfile', '-NonInteractive', '-Command', script], { windowsHide: true, timeout: 10000 });
-  const paths = stdout.trim() ? JSON.parse(stdout) : [];
-  const directory = path.resolve(root).toLowerCase();
-  const candidates = (Array.isArray(paths) ? paths : [paths]).map(value => value?.ExecutablePath);
-  if (candidates.some(value => typeof value === 'string' && value && path.dirname(path.resolve(value)).toLowerCase() === directory)) return true;
-  // An elevated game's path can be hidden from a normal launcher after restart.
-  if (candidates.some(value => typeof value !== 'string' || !value)) {
-    throw new Error('Windows could not identify a running WoW/Ascension process. Close the game before updating or changing client files.');
-  }
-  return false;
+  const tasklist = path.join(windowsRoot, 'System32', 'tasklist.exe');
+  const { stdout } = await run(tasklist, ['/FI', `IMAGENAME eq ${name}`, '/FO', 'CSV', '/NH'], {
+    windowsHide: true,
+    timeout: 10000
+  });
+  if (!stdout.trim() || /^INFO:/i.test(stdout.trim())) return false;
+  return stdout.split(/\r?\n/).some(line => line.trim().startsWith(`"${name}"`));
 }
+
+async function isGameRunning(root, { run = exec, platform = process.platform } = {}) {
+  if (platform !== 'win32' || !root) return false;
+  return await imageRunning('Ascension.exe', run) || await imageRunning('Wow.exe', run);
+}
+
 async function requireGameClosed(root) {
   if (await isGameRunning(root)) throw new Error('Close the game before updating or changing the client.');
 }
+
 async function configureRealm(root, host) {
   if (!/^[a-zA-Z0-9.-]+$/.test(host)) throw new Error('Invalid realm hostname.');
   const targets = [];
   if (await statOrNull(await safePath(root, 'realmlist.wtf', true))) targets.push('realmlist.wtf');
   const data = path.join(root, 'Data');
-  // Probe the parent chain before reading locale folders.
   await safePath(root, 'Data/.probe', true);
   for (const entry of await fs.readdir(data, { withFileTypes: true }).catch(error => { if (error.code === 'ENOENT') return []; throw error; })) {
     if (/^[a-z]{2}[A-Z]{2}$/.test(entry.name) && (entry.isDirectory() || entry.isSymbolicLink())) targets.push(`Data/${entry.name}/realmlist.wtf`);
@@ -52,4 +52,5 @@ async function configureRealm(root, host) {
     await fs.writeFile(target, desired);
   }
 }
+
 module.exports = { requireGameClosed, isGameRunning, configureRealm };
