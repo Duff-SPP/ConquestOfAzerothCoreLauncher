@@ -15,6 +15,7 @@ const { Portal } = require('./portal.cjs');
 const { requireGameClosed, isGameRunning, configureRealm } = require('./game-safety.cjs');
 const { createLauncherUpdates } = require('./launcher-updates.cjs');
 const localTesting = !app.isPackaged && process.env.COA_LOCAL_TEST === '1';
+const electronFetch = (input, init) => net.fetch(input, init);
 config.localDownloadDemo = localTesting && process.env.COA_DOWNLOAD_DEMO === '1';
 if (localTesting) {
   app.setPath('userData', path.join(app.getPath('appData'), 'ConquestLauncher-LocalTest'));
@@ -342,11 +343,12 @@ async function main() {
   settings = await readSettings(settingsFile, message => dialog.showErrorBox(nativeText('Settings recovered'), message));
   const addonCatalogRoot = app.isPackaged ? path.join(process.resourcesPath, 'AddonCatalog') : path.resolve(__dirname, 'assets/AddonCatalog');
   addonService = new AddonService(addonCatalogRoot, { mandatoryFolders: config.mandatoryAddons || [], assetFolders: config.mandatoryAssetFolders || [] });
-  clientUpdater = new ClientUpdater(config.manifestUrl, { allowLocalHttp: localTesting, notify: status => sendStatus('launcher:client-progress', status), beforeApply: async () => { if (game || clientMutation) throw new Error('Wait for the game or addon operation to finish.'); await requireGameClosed(settings?.installPath); } });
+  clientUpdater = new ClientUpdater(config.manifestUrl, { fetchImpl: electronFetch, allowLocalHttp: localTesting, notify: status => sendStatus('launcher:client-progress', status), beforeApply: async () => { if (game || clientMutation) throw new Error('Wait for the game or addon operation to finish.'); await requireGameClosed(settings?.installPath); } });
   launcherUpdates = createLauncherUpdates(app, status => sendStatus('launcher:update-status', status), async () => {
     if (clientUpdater?.busy || clientMutation) throw new Error('Wait for the current client operation to finish before restarting.');
   });
   portal = new Portal(config.apiBaseUrl, {
+    fetchImpl: electronFetch,
     allowLocalHttp: localTesting,
     cookieName: 'coa_launcher',
     sessionFile: path.join(app.getPath('userData'), 'launcher-account-session.bin'),
