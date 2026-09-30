@@ -1,7 +1,14 @@
 const { spawn } = require('node:child_process');
 const path = require('node:path');
 
-function launchGame(executable, { spawnProcess = spawn } = {}) {
+function quitLauncherAfterHandoff() {
+  if (!process.versions.electron) return;
+  const { app } = require('electron');
+  const timer = setTimeout(() => app.quit(), 250);
+  timer.unref();
+}
+
+function launchGame(executable, { spawnProcess = spawn, onLaunched = quitLauncherAfterHandoff } = {}) {
   if (!path.win32.isAbsolute(executable) || path.win32.extname(executable).toLowerCase() !== '.exe') {
     throw new Error('Select a valid absolute game executable path.');
   }
@@ -34,6 +41,7 @@ function launchGame(executable, { spawnProcess = spawn } = {}) {
       const pid = child.pid;
       child.unref();
       resolve(pid);
+      onLaunched();
     });
   });
 }
