@@ -5,7 +5,7 @@ const path = require('node:path');
 const { safePath, statOrNull } = require('./release-format.cjs');
 const exec = promisify(execFile);
 
-async function imageRunning(name, run = exec) {
+async function imageRunning(name, run) {
   const windowsRoot = process.env.SystemRoot || process.env.WINDIR || 'C:\\Windows';
   const tasklist = path.join(windowsRoot, 'System32', 'tasklist.exe');
   const { stdout } = await run(tasklist, ['/FI', `IMAGENAME eq ${name}`, '/FO', 'CSV', '/NH'], {
@@ -16,8 +16,8 @@ async function imageRunning(name, run = exec) {
   return stdout.split(/\r?\n/).some(line => line.trim().startsWith(`"${name}"`));
 }
 
-async function isGameRunning(root, { run = exec } = {}) {
-  if (process.platform !== 'win32' || !root) return false;
+async function isGameRunning(root, { run = exec, platform = process.platform } = {}) {
+  if (platform !== 'win32' || !root) return false;
   return await imageRunning('Ascension.exe', run) || await imageRunning('Wow.exe', run);
 }
 
