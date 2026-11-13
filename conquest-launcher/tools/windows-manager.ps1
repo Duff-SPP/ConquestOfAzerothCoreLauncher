@@ -1,3 +1,4 @@
+# Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 param([switch]$CheckOnly)
 $ErrorActionPreference = 'Stop'
 $launcher = Split-Path $PSScriptRoot -Parent
@@ -116,6 +117,7 @@ while ($true) {
  7  Install/refresh build dependencies (npm ci)
  8  Check build prerequisites
  9  Open hotfix output folder
+ U  Compile Linux backend + create existing-install update archive
  F  Create full VPS archive from existing fresh builds
  D  Open manager instructions
  0  Exit
@@ -142,6 +144,7 @@ Launcher-only hotfixes do not include backend fixes.
             '7' { Dependencies }
             '8' { Prerequisites }
             '9' { New-Item -ItemType Directory -Path $deliveries -Force | Out-Null; & explorer.exe $deliveries }
+            'U' { Build-Backend; Node-Ready; Run 'node.exe' @('tools/package-backend-update.cjs') }
             'F' { Full-Package }
             'D' { & notepad.exe (Join-Path $project 'LAUNCHER_MANAGER.md') }
             default { Write-Host 'Choose one of the listed options.' }

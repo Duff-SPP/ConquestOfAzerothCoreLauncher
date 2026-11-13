@@ -27,29 +27,41 @@ Var coaHash
 Var coaRemoved
 Var coaInitialInstDir
 Var coaFailure
+Var coaPreviousOutDir
 
 ; Expanded only after common.nsh. Never kill processes by directory prefix:
 ; that can include the uninstaller or an unrelated nested client.
+!ifmacrondef coaFindLauncherProcess
+!macro coaFindLauncherProcess
+  nsProcess::_FindProcess "${PRODUCT_FILENAME}.exe"
+  Pop $R0
+!macroend
+!endif
+
 !macro customCheckAppRunning
+  coaCheckLauncherAgain:
+  !insertmacro coaFindLauncherProcess
   !ifdef isUpdated
     ${If} ${isUpdated}
       ; The updater starts NSIS while its own process is winding down.
+      ; Allow up to 30 seconds for all Electron processes to exit normally.
       StrCpy $R1 0
-      ${Do}
-        nsProcess::_FindProcess "${PRODUCT_FILENAME}.exe"
-        Pop $R0
-        ${If} $R0 != 0
+      ${DoWhile} $R0 == 0
+        Sleep 250
+        !insertmacro coaFindLauncherProcess
+        IntOp $R1 $R1 + 1
+        ${If} $R1 >= 120
           ${Break}
         ${EndIf}
-        Sleep 250
-        IntOp $R1 $R1 + 1
-      ${LoopWhile} $R1 < 20
+      ${Loop}
     ${EndIf}
   !endif
-  nsProcess::_FindProcess "${PRODUCT_FILENAME}.exe"
-  Pop $R0
-  ${If} $R0 != 603
-    MessageBox MB_OK|MB_ICONEXCLAMATION "Close Conquest of AzerothCore before installing or uninstalling. No files have been removed. If it is already closed, Windows could not safely check its process state." /SD IDOK
+  ${If} $R0 == 0
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Conquest of AzerothCore is still closing or running. Wait a moment, then click Retry. If it remains open, close the launcher first. No files have been removed." /SD IDCANCEL IDRETRY coaCheckLauncherAgain
+    SetErrorLevel 2
+    Quit
+  ${ElseIf} $R0 != 603
+    MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Windows could not check whether Conquest of AzerothCore is closed (process check code: $R0). Click Retry to check again, or Cancel and restart Windows before trying again. No files have been removed." /SD IDCANCEL IDRETRY coaCheckLauncherAgain
     SetErrorLevel 2
     Quit
   ${EndIf}
@@ -105,14 +117,29 @@ FunctionEnd
 !macroend
 
 !macro coaPrepareUpgrade
-  InitPluginsDir
-  File /oname=$PLUGINSDIR\coa-owned.txt "${BUILD_RESOURCES_DIR}\coa-owned.txt"
+  StrCpy $coaHandle ""
   StrCpy $coaBackup ""
-  StrCpy $coaFailure "Could not read the embedded ownership manifest."
+  StrCpy $coaPreviousOutDir "$OUTDIR"
+  StrCpy $coaFailure "Could not initialize the installer's temporary directory. TEMP: $TEMP"
+  ClearErrors
+  InitPluginsDir
+  IfErrors coaPreserveFailed
+  StrCpy $coaFailure "Could not open the installer's temporary directory: $PLUGINSDIR"
+  ClearErrors
+  SetOutPath "$PLUGINSDIR"
+  IfErrors coaPreserveFailed
+  StrCpy $coaFailure "Could not extract the embedded ownership manifest to: $PLUGINSDIR\coa-owned.txt"
+  ClearErrors
+  File /oname=coa-owned.txt "${BUILD_RESOURCES_DIR}\coa-owned.txt"
+  IfErrors coaPreserveFailed
+  StrCpy $coaFailure "Could not open the embedded ownership manifest: $PLUGINSDIR\coa-owned.txt"
   ClearErrors
   FileOpen $coaHandle "$PLUGINSDIR\coa-owned.txt" r
   IfErrors coaPreserveFailed
+  ClearErrors
   FileSeek $coaHandle 2 SET
+  StrCpy $coaFailure "Could not seek in the embedded ownership manifest: $PLUGINSDIR\coa-owned.txt"
+  IfErrors coaPreserveFailed
   coaPreserveNext:
     ClearErrors
     FileReadUTF16LE $coaHandle $coaLine
@@ -121,9 +148,11 @@ FunctionEnd
     StrCpy $coaExpected $coaLine 64
     StrCpy $coaRelative $coaLine "" 65
     Call coaCheckPath
+    StrCpy $coaFailure "The selected installation path passes through a linked/reparse path: $coaCheck. Choose a direct writable folder. Under Wine, use a mapped drive without symlinked parent folders."
     StrCmp $coaSafe "1" 0 coaPreserveFailed
     IfFileExists "$INSTDIR\$coaRelative" 0 coaPreserveNext
     ${StdUtils.HashFile} $coaActual "SHA2-256" "$INSTDIR\$coaRelative"
+    StrCpy $coaFailure "Could not hash an existing launcher file: $INSTDIR\$coaRelative. Check that the selected partition is mounted and readable in Wine."
     StrLen $coaAttributes $coaActual
     IntCmp $coaAttributes 64 0 coaPreserveFailed coaPreserveFailed
     StrCmp $coaActual $coaExpected coaPreserveNext
@@ -134,6 +163,7 @@ FunctionEnd
     StrCpy $coaRelative ".coa-preserved"
     Call coaCheckPath
     Pop $coaRelative
+    StrCpy $coaFailure "The launcher backup directory passes through a linked/reparse path: $coaCheck"
     StrCmp $coaSafe "1" 0 coaPreserveFailed
     StrCpy $coaFailure "Could not create the launcher backup directory."
     ClearErrors
@@ -166,7 +196,8 @@ FunctionEnd
     FileClose $coaHandle
     Goto coaPreserveFinished
   coaPreserveFailed:
-    FileClose $coaHandle
+    StrCmp $coaHandle "" +2
+      FileClose $coaHandle
 !ifdef COA_SMOKE_FAILURE_FILE
     FileOpen $R9 "${COA_SMOKE_FAILURE_FILE}" w
     FileWrite $R9 "$coaFailure"
@@ -176,6 +207,7 @@ FunctionEnd
     SetErrorLevel 2
     Quit
   coaPreserveFinished:
+    SetOutPath "$coaPreviousOutDir"
 !macroend
 
 !macro customRemoveFiles

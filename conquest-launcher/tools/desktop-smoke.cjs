@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const assert = require('node:assert/strict');
@@ -38,7 +39,7 @@ async function run() {
     await assert.rejects(fs.stat(path.join(root, 'game/Interface/AddOns')), { code: 'ENOENT' });
     await fs.mkdir(path.join(root, 'game/Interface/AddOns/PlayerCustom'), { recursive: true });
     await fs.writeFile(path.join(root, 'game/Interface/AddOns/PlayerCustom/PlayerCustom.toc'), '## Title: Player custom addon');
-    assert.equal(await fs.readFile(path.join(root, 'game/Data/enUS/realmlist.wtf'), 'utf8'), 'set realmlist logon.coa-development.org\r\n');
+    assert.equal(await fs.readFile(path.join(root, 'game/Data/enUS/realmlist.wtf'), 'utf8'), 'set realmlist logon.coa-development.org\n');
     const saved = JSON.parse(await fs.readFile(path.join(root, 'profile/settings.json'), 'utf8'));
     assert.equal(saved.installPath, path.join(root, 'game'));
     // Render the intermediate progress state deterministically; the fixture is
@@ -59,6 +60,7 @@ async function run() {
     await page.locator('.utility-right [data-action="settings"]').click();
     await page.getByText('Check launcher updates', { exact: true }).waitFor();
     assert.equal(await page.locator('#launcher-restart').isVisible(), false);
+    assert.equal(await page.locator('[data-setting="closeOnLaunch"]').count(), 0);
     await page.screenshot({ path: path.join(root, 'settings.png'), animations: 'disabled' });
     await page.locator('.modal-close').click();
     await page.locator('[data-page="addons"]').click();

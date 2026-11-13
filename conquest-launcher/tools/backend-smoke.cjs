@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const http = require('node:http');

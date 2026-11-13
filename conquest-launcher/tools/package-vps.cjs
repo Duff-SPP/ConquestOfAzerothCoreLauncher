@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 // Manual operation only: collects freshly built artifacts using an explicit allowlist.
 const fs = require('node:fs/promises');
 const path = require('node:path');
@@ -40,9 +41,9 @@ async function run() {
   const runtime = JSON.parse(await fs.readFile(path.join(publish,'Conquest.Launcher.Backend.runtimeconfig.json'),'utf8'));
   if (!runtime.runtimeOptions.frameworks && !runtime.runtimeOptions.framework) throw new Error('Use the documented framework-dependent Linux publish, not an old self-contained folder.');
   const stage = await fs.mkdtemp(path.join(output, 'vps-current-'));
-  await copyTree(publish,path.join(stage,'backend/deploy/linux-x64'),(name,dir)=> dir ? name==='wwwroot' || !/[.]/.test(name) : /\.(dll|so|html|js|css|woff2?|webp|png|ico|jpg)$/.test(name) || /\.(deps|runtimeconfig)\.json$/.test(name));
+  await copyTree(publish,path.join(stage,'backend/deploy/linux-x64'),(name,dir)=> dir ? name==='wwwroot' || !/[.]/.test(name) : ['LICENSE','COPYING','ATTRIBUTION.md','THIRD_PARTY_NOTICES.md'].includes(name) || /\.(dll|so|html|js|css|woff2?|webp|png|ico|jpg)$/.test(name) || /\.(deps|runtimeconfig)\.json$/.test(name));
   for (const folder of ['ubuntu','sql']) await copyTree(path.join(backend,folder),path.join(stage,'backend',folder),(name,dir)=>dir||/\.(sh|conf|service|sql|example)$/.test(name));
-  for (const file of ['install-vps.sh','BUILD_AND_RELEASE.md','PRODUCTION_DEPLOYMENT.md']) await fs.copyFile(path.join(root,file),path.join(stage,file));
+  for (const file of ['install-vps.sh','BUILD_AND_RELEASE.md','PRODUCTION_DEPLOYMENT.md','LICENSE','COPYING','ATTRIBUTION.md','THIRD_PARTY_NOTICES.md']) await fs.copyFile(path.join(root,file),path.join(stage,file));
   for (const file of ['publish-client.cjs','publish-launcher.cjs','release-manager.cjs','validate-master.cjs']) {
     const target=path.join(stage,'release-tools/tools',file);await fs.mkdir(path.dirname(target),{recursive:true});await fs.copyFile(path.join(__dirname,file),target);
   }
@@ -51,7 +52,7 @@ async function run() {
   await fs.mkdir(path.join(stage,'launcher-release'),{recursive:true});
   for (const file of [release.file,release.file+'.blockmap','launcher-release.json','latest.yml']) await fs.copyFile(path.join(bundle,file),path.join(stage,'launcher-release',file));
   const archive=path.join(root,`Conquest-Launcher-VPS-${version}-${Date.now()}.tar.gz`);
-  execFileSync('tar',['-czf',archive,'-C',stage,'backend','release-tools','launcher-release','install-vps.sh','BUILD_AND_RELEASE.md','PRODUCTION_DEPLOYMENT.md'],{stdio:'inherit'});
+  execFileSync('tar',['-czf',archive,'-C',stage,'backend','release-tools','launcher-release','install-vps.sh','BUILD_AND_RELEASE.md','PRODUCTION_DEPLOYMENT.md','LICENSE','COPYING','ATTRIBUTION.md','THIRD_PARTY_NOTICES.md'],{stdio:'inherit'});
   console.log(`Current package: ${archive}\nStaging retained for inspection: ${stage}`);
 }
 if (require.main === module) run().catch(error=>{console.error(error.message);process.exitCode=1;});

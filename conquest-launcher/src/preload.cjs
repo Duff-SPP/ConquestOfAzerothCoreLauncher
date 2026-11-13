@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 const { contextBridge, ipcRenderer } = require('electron');
 
 async function invoke(channel, ...args) {
@@ -15,9 +16,11 @@ contextBridge.exposeInMainWorld('launcher', Object.freeze({
   checkClient: force => invoke('launcher:client-check', force === true),
   updateClient: force => invoke('launcher:client-update', force === true),
   pauseClient: () => invoke('launcher:client-pause'),
+  clearCache: () => invoke('launcher:clear-cache'),
   account: () => invoke('launcher:account'),
+  legalNotices: () => invoke('launcher:legal-notices'),
   discord: () => invoke('launcher:discord'),
-  login: (login, password) => invoke('launcher:login', login, password),
+  login: (login, password, code, remember) => invoke('launcher:login', login, password, code, remember),
   register: (username, email, password, confirmPassword, acceptTestWarning) => invoke('launcher:register', username, email, password, confirmPassword, acceptTestWarning === true),
   accountOverview: () => invoke('launcher:account-overview'),
   accountCharacters: () => invoke('launcher:account-characters'),
@@ -27,6 +30,7 @@ contextBridge.exposeInMainWorld('launcher', Object.freeze({
   logout: () => invoke('launcher:logout'),
 
   checkLauncher: () => invoke('launcher:launcher-check'),
+  taskbarBadge: count => invoke('launcher:taskbar-badge', count),
   installLauncherUpdate: () => invoke('launcher:launcher-install'),
   onClientProgress: callback => {
     const listener = (_event, status) => callback(status);
@@ -43,13 +47,13 @@ contextBridge.exposeInMainWorld('launcher', Object.freeze({
   openFolder: () => invoke('launcher:open-folder'),
   external: key => invoke('launcher:external', key),
   databaseView: request => invoke('launcher:database-view', request),
-  reloadDatabase: () => invoke('launcher:database-reload'),
+  reloadDatabase: page => invoke('launcher:database-reload', page),
   issues: force => invoke('launcher:issues', force === true),
   openIssue: number => invoke('launcher:open-issue', number),
   submitBug: report => invoke('launcher:submit-bug', report),
   addons: verify => invoke('launcher:addons', verify === true),
   installAddon: packageId => invoke('launcher:addon-install', packageId),
-  uninstallAddon: packageId => invoke('launcher:addon-uninstall', packageId),
+  uninstallAddon: (packageId, removeModified = false) => invoke('launcher:addon-uninstall', packageId, removeModified),
   openAddonsFolder: () => invoke('launcher:open-addons-folder'),
   onDatabaseStatus: callback => {
     const listener = (_event, status) => callback(status);

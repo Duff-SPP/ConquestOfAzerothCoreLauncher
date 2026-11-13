@@ -4,6 +4,13 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 
 const required = [
+  "Added the Armory inside the launcher with reload and loading status.",
+  "Added a saved Enable HD patches checkbox below Play, applied on the next game launch.",
+  "Improved networking for client downloads and account services using the launcher browser network stack.",
+  "Fixed account session cookie handling, saved sign-in updates, and sign-out cleanup.",
+  "Normal updates now preserve customized DLLs; Repair still restores managed files.",
+  "Normal updates respect enabled or disabled MPQ patches without downloading a duplicate filename.",
+  "Improved game window visibility and running-game detection.",
   "Mandatory",
   "Release history from version 0.6.1 onward.",
   "Added multilingual launcher support with saved language selection for English, French, Spanish, Russian, and Simplified Chinese.",
@@ -26,7 +33,7 @@ test('saved language restores the shell and release history is localized', async
   assert.match(app, /launcherI18n\.setLanguage\(state\.settings\.language\);[\s\S]*?refreshLanguageShell\(\);/);
   assert.doesNotMatch(app, /addon\.mandatory \? ' · Mandatory'/);
 
-  for (const version of ['0.6.9', '0.6.8', '0.6.7', '0.6.6', '0.6.5', '0.6.4', '0.6.3', '0.6.2', '0.6.1']) {
+  for (const version of ['0.7.0', '0.6.9', '0.6.8', '0.6.7', '0.6.6', '0.6.5', '0.6.4', '0.6.3', '0.6.2', '0.6.1']) {
     assert.match(app, new RegExp("version: '" + version.replaceAll('.', '\\.') + "'"));
   }
 

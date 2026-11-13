@@ -35,6 +35,7 @@ For later launcher/backend updates, a fresh VPS archive and these guides are suf
 ## Windows prerequisites
 
 - Node.js **22 or newer** and its bundled npm; use `npm.cmd` in PowerShell. Node is required for release scripts. Production Electron embeds its own runtime.
+- Launcher 0.7.9 adds Koffi for native process detection without PowerShell. Refresh dependencies with `npm.cmd ci` before compiling. Keep optional dependencies enabled: `@koromix/koffi-win32-x64` contains the prebuilt Windows library. The build configuration unpacks it for Electron; no new C++ helper needs to be compiled.
 - **.NET SDK 8.0** (latest servicing release), or a newer SDK capable of targeting net8.0. The VPS needs only the ASP.NET Core 8 runtime.
 - Windows x64, internet for NuGet/npm and electron-builder's NSIS tooling, and `tar.exe` (included in current Windows). The current packages do not require a separately configured Visual Studio C++ toolchain. electron-builder downloads its own NSIS tools.
 - Check `node --version`, `npm.cmd --version`, `dotnet --list-sdks`, `tar --version`.

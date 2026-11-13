@@ -51,7 +51,7 @@ test('production bundles keep preload API/IPC intact and ship only transformed f
   built.ipcRenderer.invoke = async () => ({ ok: false, error: 'fixture failure' });
   await assert.rejects(built.exposed.bootstrap(), /fixture failure/);
   const html = await fs.readFile(path.join(output, 'public/index.html'), 'utf8');
-  assert.deepEqual([...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match => match[1]), ['c.js']);
+  assert.deepEqual([...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match => match[1]), ['builder/data/coa-data.js', 'c.js']);
   assert.match(html, /script-src 'self'/); assert.doesNotMatch(html, /unsafe-eval/);
 });
 

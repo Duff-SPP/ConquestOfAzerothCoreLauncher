@@ -25,3 +25,7 @@ Prerequisites: Windows x64, Node.js 22+ and npm, Windows tar, and .NET SDK 8 (or
 On Linux, upload the hotfix archive and checksum together, then follow its included `LAUNCHER_DEPLOYMENT.md`. The generated `PUBLISH-LAUNCHER.sh` verifies hashes, asks for your existing published directory and requires typing PUBLISH before updating the live feed. Run it with bash as documented. Full VPS packages use the existing deployment guide instead.
 
 The manager was source-reviewed and syntax-checked without compiling, creating a real release, contacting the dedicated host or publishing an update.
+
+- **U:** Compile the Linux backend and create a backend-only update archive for the existing installation. Review UPDATE_0.8.1.md before applying it.
+
+Original author: Duff (Duff-SPP). See LICENSE, COPYING and ATTRIBUTION.md for reuse and redistribution terms. Source publication does not publish a launcher release.

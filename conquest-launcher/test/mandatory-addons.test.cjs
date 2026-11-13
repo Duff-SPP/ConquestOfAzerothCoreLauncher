@@ -80,7 +80,9 @@ test('inventory lists custom, catalog and no-TOC folders without adopting or mod
   await fs.mkdir(path.join(root,'AssetsOnly'));
   const service = new AddonService(f.catalog);
   const result = await service.list(f.client);
-  assert.equal(result.packages.find(p=>p.id==='optional').status,'update');
+  assert.equal(result.packages.find(p=>p.id==='optional').status,'installed');
+  const verified = await service.list(f.client, true);
+  assert.equal(verified.packages.find(p=>p.id==='optional').status,'update');
   assert.equal(result.packages.find(p=>p.id==='optional').managed,false);
   assert.equal(result.packages.find(p=>p.id==='local:MyAddon').installedVersion,'42');
   assert.equal(result.packages.find(p=>p.id==='local:AssetsOnly').status,'unknown');

@@ -1,6 +1,8 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 /* Local renderer: no remote scripts, credentials, or reference-launcher services. */
 'use strict';
 const icons = {
+  builder: '<path d="M5 5h5v5H5zM14 14h5v5h-5zM5 14h5v5H5zM7.5 10v4m2.5-6.5h7v6.5"/>',
   home: launcherI18n.html('<path d="m3 10 9-7 9 7v10H7V10"/><path d="M10 20v-7h5v7"/>'),
   news: launcherI18n.html('<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h3M8 16h3M14 12h2M14 16h2"/>'),
   store: launcherI18n.html('<path d="M3 9 5 4h14l2 5M4 10v10h16V10M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M9 20v-6h6v6"/>'),
@@ -35,10 +37,11 @@ const articles = [
   id: 'welcome',
   category: 'ANNOUNCEMENT',
   title: 'Welcome to Conquest of AzerothCore',
-  summary: 'Your gateway to the PTR begins here.',
+  summary: 'Your gateway to the live realms begins here.',
   image: 'portal.webp',
   body: [
     'Use the launcher to install, update, and repair your client, manage addons, and access account features in one place.',
+    'Play on the live realms, with PTR realms available for testing.',
     'Stay tuned for future project announcements, patch notes, and community updates.'
   ]
 },
@@ -56,7 +59,116 @@ const articles = [
   { id: 'journey', category: 'DEVELOPMENT', title: 'Building the journey ahead', summary: 'Follow the development of Conquest of AzerothCore.', image: 'landscape.webp', body: ['Follow development updates, changelogs, and community announcements here.', 'Check back for the latest project news.'] },
   { id: 'community', category: 'COMMUNITY', title: 'Your adventure. Our community.', summary: 'Find your guild, share your stories, and stay connected.', image: 'trailer.jpg', body: ['Azeroth is better together. Join the Conquest of AzerothCore community on Discord.', 'Use the Discord button to meet other players and stay connected.'] }
 ];
+function launcherCreditsHtml() {
+  return lh`<section class="launcher-credits"><h4>${t('Credits & license')}</h4><p>Originally developed by Duff (Duff-SPP) as Conquest Launcher.</p><p>${t('GPLv3 with author-attribution terms. This software comes with no warranty. Third-party assets retain their own rights.')}</p><button class="ghost-button" data-action="view-license">${t('License & attribution')}</button><button class="ghost-button" data-external="source">${t('Source code')}</button></section>`;
+}
+
+async function showLegalNotices() {
+  const notices = await api.legalNotices();
+  openModal(lh`${modalHeader(t('License & attribution'))}<div class="modal-body">${notices.map(notice => lh`<details><summary>${escape(notice.name)}</summary><pre class="legal-text">${escape(notice.text)}</pre></details>`).join('')}</div><div class="modal-footer"><button class="gold-button" data-action="dismiss-modal">${t('Done')}</button></div>`);
+}
+
 const changelogEntries = [
+  { version: '0.8.1', items: [
+    'Added a welcome screen requiring account sign-in before entering the launcher.',
+    'Added Remember me with encrypted account sessions and optional saved game auto-login credentials.',
+    'Client downloads and repairs now require the exact launcher version configured on the backend; launcher updates remain available.'
+  ] },
+  {
+    version: '0.8.0',
+    items: [
+      'Removed PowerShell from running-game detection, fixing empty-response JSON errors while checking the selected client folder.',
+      'Improved custom-folder installer diagnostics and isolated ownership-manifest extraction in the installer temporary directory.',
+      'Added optional automatic game login using credentials retained only for the current launcher session.',
+      'Added launcher sign-in support for authenticator and recovery codes.',
+      'The game cache is now cleared automatically before every launcher-started game session.',
+      'Allowed dedicated client subfolders inside the launcher installation while protecting launcher runtime folders.'
+    ]
+  },
+  {
+    version: '0.7.8',
+    items: [
+      'Added Downloads settings with a saved client download speed limit, adjustable during downloads and repairs.',
+      'Pausing a client download now keeps the download resumable without showing an aborted-operation error.'
+    ]
+  },
+  {
+    version: '0.7.7',
+    items: [
+      'Game detection now checks executable paths in the selected client folder. Games running from other folders no longer block Play, updates, or folder selection.',
+      'Added an optional Linux / Wine compatibility setting for the reported Enter World loading-screen disconnect.'
+    ]
+  },
+  {
+    version: '0.7.6',
+    items: [
+      'Fixed the Addons page repeatedly reloading when no addons are found or a scan fails. Rescan remains available for manual retries.',
+      'Fixed Do not remind me again not saving for the old addon cleanup reminder.',
+      'Automatically handles read-only realmlist files before launching and explains how to resolve blocked file access.',
+      'The old addon cleanup reminder now appears only when old launcher-managed addons remain installed.',
+      'Play checks for client updates and updates before launching, respecting the Launch game after updating setting. Repeated clicks cannot start overlapping Play actions.'
+    ]
+  },
+  {
+    version: '0.7.5',
+    items: [
+      'Fixed outdated addon catalog entries reappearing after launcher updates. Browse addons now lists only addons included in the current release.',
+      'Previously launcher-installed addons remain available under Installed addons for uninstalling.'
+    ]
+  },
+  {
+    version: '0.7.4',
+    items: [
+      'Added separate saved toggles for compatibility graphics and additional graphics enhancements.',
+      'Added options to close, minimize, or keep the launcher open when the game starts.',
+      'Added a saved option to update the client without automatically launching the game.',
+      'Client updates now preserve your realmlist. The PTR realmlist is applied only when launching the game.',
+      'Fixed client updates and graphics toggles failing on exFAT drives when hard links are unsupported.'
+    ]
+  },
+  {
+    version: '0.7.3',
+    items: [
+      'Reduced temporary disk space needed for client installation and updates by reusing verified downloads during staging on supported drives.'
+    ]
+  },
+  {
+    version: '0.7.2',
+    items: [
+      'Fixed leftover client download files taking up extra disk space after an interrupted cleanup. Update checks now remove downloads no longer needed while preserving resumable downloads.',
+      'Removed outdated addon catalog downloads. Uninstall addons previously installed through the launcher catalog to avoid conflicts with addons supplied by patch B.',
+      'Added an offline Class Builder with all 21 classes, talent trees, and specialization choices directly in the launcher.',
+      'Plan builds with AE and TE tracking, talent prerequisites, rank selection, and purchase or refund controls.',
+      'Save and load builds locally, or share them using build codes and JSON import or export.',
+      'Improved game folder selection with clear confirmation for downloading a new client or using an existing client.',
+      'Improved launcher update installation by waiting longer for shutdown and allowing Retry if the launcher is still closing.'
+    ]
+  },
+  {
+    version: '0.7.1',
+    items: [
+      'Fixed normal updates to always restore the required Extensions.dll from the published client release.',
+      'Added a saved compatibility graphics option for players experiencing display device errors.',
+      'Added Clear cache in Game client settings to remove cached game data while preserving settings and addons.',
+      'Added an optional saved setting to clear the game cache before every launcher-started game session.'
+    ]
+  },
+  {
+    version: '0.7.0',
+    items: [
+      'Redesigned the Discord community popup with a banner, live member counts, and a clearer Join Discord button.',
+      'Added a first-start language selector that remembers your choice and keeps language changes available through the globe button.',
+      'Added download speed and estimated time remaining while downloading the client.',
+      'Added a Repair explanation dialog covering managed DLL replacement, patch filenames, and preserved player files.',
+      'Added the Armory inside the launcher with reload and loading status.',
+      'Added a saved Enable HD patches checkbox below Play, applied on the next game launch.',
+      'Improved networking for client downloads and account services using the launcher browser network stack.',
+      'Fixed account session cookie handling, saved sign-in updates, and sign-out cleanup.',
+      'Normal updates now preserve customized DLLs; Repair still restores managed files.',
+      'Normal updates respect enabled or disabled MPQ patches without downloading a duplicate filename.',
+      'Improved game window visibility and running-game detection.'
+    ]
+  },
   {
     version: '0.6.9',
     items: [
@@ -116,19 +228,20 @@ const changelogEntries = [
   }
 ];
 const emptyConfig = { name: 'Conquest of AzerothCore', links: {} };
-const defaultSettings = { language: 'en', startPage: 'home', closeOnLaunch: false, rememberClient: true, reducedMotion: false, sound: true, installPath: '' };
+const defaultSettings = { language: 'en', languageSelected: false, startPage: 'home', launchBehavior: 'close', autoLaunchAfterUpdate: true, addonCleanupDismissed: false, rememberClient: true, hdPatches: true, wineCompatibility: false, autoLoginGame: false, downloadLimitMBps: 0, graphicsCompatibility: false, disableGraphicsEnhancements: false, reducedMotion: false, sound: true, installPath: '' };
 let previewSettings;
 try { previewSettings = { ...defaultSettings, ...JSON.parse(localStorage.getItem('conquest-preview-settings') || '{}') }; } catch { previewSettings = { ...defaultSettings }; }
 const api = window.launcher || {
   bootstrap: async () => ({ config: emptyConfig, settings: previewSettings, client: { installed: false, running: false, path: '' }, version: '0.2.0' }),
   window: async action => { if (action === 'maximize' && !document.fullscreenElement) await document.documentElement.requestFullscreen(); else if (action === 'maximize') await document.exitFullscreen(); else toast(t('Window controls work in the desktop launcher.')); },
-  saveSettings: async patch => { Object.assign(previewSettings, patch); localStorage.setItem('conquest-preview-settings', JSON.stringify(previewSettings)); return previewSettings; },
+  saveSettings: async patch => { Object.assign(previewSettings, patch); if (Object.hasOwn(patch, 'language')) previewSettings.languageSelected = true; localStorage.setItem('conquest-preview-settings', JSON.stringify(previewSettings)); return previewSettings; },
   chooseClient: async () => { throw new Error(t('Open the desktop launcher to select a client folder.')); },
   clientInfo: async () => ({ installed: false, running: false, path: '' }),
   launch: async () => { throw new Error(t('Select a client in the desktop launcher first.')); },
   openFolder: async () => { throw new Error(t('Select a client in the desktop launcher first.')); },
   external: async () => { throw new Error(t('This service has not been connected yet.')); },
   account: async () => null,
+  legalNotices: async () => { throw new Error(t('Open the installed desktop launcher to read the bundled license files.')); },
   login: async () => { throw new Error(t('Account login is available in the desktop launcher.')); },
   register: async () => { throw new Error(t('Account registration is available in the desktop launcher.')); },
   accountOverview: async () => { throw new Error(t('Account management is available in the desktop launcher.')); },
@@ -183,16 +296,18 @@ async function guarded(action) {
 }
 function openModal(content, className = '') {
   popoverRoot.innerHTML = '';
-  if (state.page === 'database') api.databaseView({ visible: false }).catch(() => {});
+  if (isEmbeddedPage()) api.databaseView({ visible: false }).catch(() => {});
   if (!modal.open) lastModalFocus = document.activeElement;
   modal.className = className; modalContent.innerHTML = content; fillIcons(modalContent);
   if (!modal.open) modal.showModal();
   modal.querySelector('.modal-close')?.focus();
 }
 function closeModal() {
+  if (modal.classList.contains('first-language-dialog') && !state.settings.languageSelected) return;
   modal.close();
-  if (state.page === 'database') requestAnimationFrame(syncDatabaseView);
+  if (isEmbeddedPage()) requestAnimationFrame(syncDatabaseView);
 }
+modal.addEventListener('cancel', event => { if (modal.classList.contains('first-language-dialog') && !state.settings.languageSelected) event.preventDefault(); });
 modal.addEventListener('close', () => {
   // Destroy modal content when closed.
   // This stops embedded media such as YouTube immediately.
@@ -202,20 +317,20 @@ modal.addEventListener('close', () => {
     lastModalFocus.focus();
   }
 
-  if (state.page === 'database') {
+  if (isEmbeddedPage()) {
     requestAnimationFrame(syncDatabaseView);
   }
 });
 modal.addEventListener('click', event => { if (event.target === modal) { const bounds = modal.getBoundingClientRect(); if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeModal(); } });
 const modalHeader = (title, subtitle = '') => lh`<div class="modal-header"><div><h2 id="modal-title">${escape(title)}</h2>${subtitle ? lh`<p>${escape(subtitle)}</p>` : ''}</div><button class="modal-close" data-action="dismiss-modal" aria-label="Close dialog">×</button></div>`;
-const titleBlock = (title, description, badge = '') => lh`<div class="page-topline"><div><div class="eyebrow">Conquest of AzerothCore</div><h1 class="page-title">${title}</h1><p class="page-description">${description}</p></div>${badge ? lh`<span class="page-tag">${badge}</span>` : ''}</div>`;
+const titleBlock = (title, description = '', badge = '') => lh`<div class="page-topline"><div><div class="eyebrow">Conquest of AzerothCore</div><h1 class="page-title">${title}</h1>${description ? lh`<p class="page-description">${description}</p>` : ''}</div>${badge ? lh`<span class="page-tag">${badge}</span>` : ''}</div>`;
 function newsCard(article) { return lh`<button class="news-card" data-article="${article.id}"><div class="news-art"><img src="assets/${article.image}" alt="" loading="eager"><span class="news-category">${t(article.category)}</span></div><div class="news-copy"><div class="news-date">Conquest of AzerothCore</div><h3>${t(article.title)}</h3><p>${t(article.summary)}</p></div></button>`; }
 function changelogHtml() {
   return lh`<div class="changelog-history"><p class="changelog-intro">${t('Release history from version 0.6.1 onward.')}</p>${changelogEntries.map(entry => lh`<div class="changelog-item"><small>LAUNCHER · v${escape(entry.version)}</small><h3>${lt`Version ${entry.version}`}</h3><ul class="changelog-list">${entry.items.map(item => lh`<li>${t(item)}</li>`).join('')}</ul></div>`).join('')}</div>`;
 }
 function homePage() {
   const installed = state.client.installed;
-  return lh`<div class="home-page"><section class="hero-grid"><div class="hero-copy"><div class="eyebrow">Your world. Your adventure.</div><h1>Conquest of<br>AzerothCore</h1><p class="hero-description">Return to the world that started it all.<br>Begin your next chapter in Azeroth.</p><div class="client-controls"><div class="client-label"><span>Conquest of AzerothCore</span><span>${installed ? t('Client selected') : 'World of Warcraft'}</span></div><div class="play-row"><button class="play-button" data-action="play">${icon(installed ? 'play' : 'download')}<span class="play-text"><span class="play-title">${state.client.running ? t('Playing') : installed ? t('Play') : t('Download')}</span><span class="play-subtitle">${state.client.running ? t('Your adventure is underway') : installed ? t('Enter Azeroth') : t('Begin your adventure')}</span></span></button><button class="play-options" data-action="play-options" aria-label="Game options">⌄</button></div><button class="locate-client" data-action="choose-client">${icon('folder')}${installed ? launcherI18n.html('<span>Change game location</span>') : launcherI18n.html('Already installed? <span>Locate game</span>')}</button></div></div><aside class="hero-side"><fieldset class="trailer-panel"><legend>A world of adventure</legend><button class="trailer-button" data-action="trailer" aria-label="Watch the trailer"><img src="assets/trailer.jpg" alt="A dragon above a burning Azeroth landscape"><span class="trailer-play"><span>${icon('play')}</span></span><span class="trailer-caption">YOUR NEXT CHAPTER AWAITS</span></button></fieldset><button class="discord-card" data-action="discord"><span class="discord-crest discord-crest-image"><img src="assets/ascension-emblem.webp" alt=""></span><span class="discord-name">Conquest<span><small>Join our community</small></span></span><span class="discord-link">${icon('discord')} DISCORD ${icon('external')}</span></button></aside></section><section class="news-section"><div class="section-heading"><h2>Latest news</h2><span class="heading-rule"></span><button data-page="news">View all news ${icon('arrow')}</button></div><div class="news-grid">${articles.map(newsCard).join('')}</div></section></div>`;
+  return lh`<div class="home-page"><section class="hero-grid"><div class="hero-copy"><div class="eyebrow">Your world. Your adventure.</div><h1>Conquest of<br>AzerothCore</h1><p class="hero-description">Return to the world that started it all.<br>Begin your next chapter in Azeroth.</p><div class="client-controls"><div class="client-label"><span>Conquest of AzerothCore</span><span>${installed ? t('Client selected') : 'World of Warcraft'}</span></div><div class="play-row"><button class="play-button" data-action="play">${icon(installed ? 'play' : 'download')}<span class="play-text"><span class="play-title">${state.client.running ? t('Playing') : installed ? t('Play') : t('Download')}</span><span class="play-subtitle">${state.client.running ? t('Your adventure is underway') : installed ? t('Enter Azeroth') : t('Begin your adventure')}</span></span></button><button class="play-options" data-action="play-options" aria-label="Game options">⌄</button></div><label class="hd-patches-option"><input type="checkbox" data-setting="hdPatches" ${state.settings.hdPatches !== false ? 'checked' : ''}><span>${t('Enable HD patches')}</span></label><span class="hd-patches-hint">${t('Applies on your next launch.')}</span><button class="locate-client" data-action="choose-client">${icon('folder')}${installed ? launcherI18n.html('<span>Change game location</span>') : launcherI18n.html('Already installed? <span>Locate game</span>')}</button></div></div><aside class="hero-side"><fieldset class="trailer-panel"><legend>A world of adventure</legend><button class="trailer-button" data-action="trailer" aria-label="Watch the trailer"><img src="assets/trailer.jpg" alt="A dragon above a burning Azeroth landscape"><span class="trailer-play"><span>${icon('play')}</span></span><span class="trailer-caption">YOUR NEXT CHAPTER AWAITS</span></button></fieldset><button class="discord-card" data-action="discord"><span class="discord-crest discord-crest-image"><img src="assets/ascension-emblem.webp" alt=""></span><span class="discord-name">Conquest<span><small>Join our community</small></span></span><span class="discord-link">${icon('discord')} DISCORD ${icon('external')}</span></button></aside></section><section class="news-section"><div class="section-heading"><h2>Latest news</h2><span class="heading-rule"></span><button data-page="news">View all news ${icon('arrow')}</button></div><div class="news-grid">${articles.map(newsCard).join('')}</div></section></div>`;
 }
 function newsPage() {
   return lh`<div class="content-page">${titleBlock(t('News & updates'), t('The latest from your world. Announcements, development, and community stories.'), 'CONQUEST OF AZEROTHCORE')}<div class="tabs" role="tablist" aria-label="News categories"><button role="tab" aria-selected="${state.newsTab === 'latest'}" class="tab ${state.newsTab === 'latest' ? 'active' : ''}" data-news-tab="latest">Latest news</button><button role="tab" aria-selected="${state.newsTab === 'changelog'}" class="tab ${state.newsTab === 'changelog' ? 'active' : ''}" data-news-tab="changelog">Changelog</button></div>${state.newsTab === 'latest' ? lh`<div class="news-page-grid">${articles.map(newsCard).join('')}</div>` : changelogHtml()}</div>`;
@@ -232,10 +347,17 @@ function servicePage(key) {
   const connected = !!state.config.links[key];
   return lh`<div class="content-page">${titleBlock(t(service.title), t(service.description) || t(service.body))}<div class="empty-panel"><span class="empty-emblem">${icon(service.icon)}</span><h2>${t(service.heading)}</h2><p>${t(service.body)}</p><button class="gold-button" data-external="${key}" ${connected ? '' : 'disabled'}>${t(service.action)} ${icon('external')}</button><div class="service-details"><span>Project service</span><span>${connected ? t('Connected') : t('Not connected yet')}</span></div></div>${key === 'store' ? launcherI18n.html('<div class="feature-row"><div class="feature-tile">') + icon('user') + launcherI18n.html('<h3>Your account</h3><p>Your own project identity and purchase history.</p></div><div class="feature-tile">') + icon('store') + launcherI18n.html('<h3>Your catalog</h3><p>Products and availability from your project.</p></div><div class="feature-tile">') + icon('shield') + launcherI18n.html('<h3>Your checkout</h3><p>Payments handled by your connected website.</p></div></div>') : ''}</div>`;
 }
+function isEmbeddedPage() { return state.page === 'database' || state.page === 'armory'; }
 function databasePage() {
+  if (state.page === 'armory') return armoryPage();
   const embedded = !!window.launcher;
   return lh`<div class="content-page database-page">${titleBlock(t('Database'), t('Explore items, spells, quests, creatures, and discoveries without leaving the launcher.'), t('LIVE DATABASE'))}<div class="database-toolbar"><span class="database-state" id="database-status">${icon('database')}<span>${embedded ? t('Connecting to Ascension Database…') : t('Desktop launcher required for embedded browsing')}</span></span><div class="button-row"><button class="secondary-button" data-action="database-reload" ${embedded ? '' : 'disabled'}>${icon('refresh')}Reload</button><button class="secondary-button" data-external="database">${icon('external')}Open in browser</button></div></div><div class="database-frame"><div class="database-placeholder">${icon('database')}<strong>Ascension Database</strong><span>${embedded ? t('Loading the live database…') : t('The native embedded browser appears here in the desktop launcher.')}</span></div><div class="database-viewport" id="database-viewport" aria-label="Embedded Ascension Database"></div></div></div>`;
 }
+function armoryPage() {
+  const embedded = !!window.launcher;
+  return lh`<div class="content-page database-page">${titleBlock(t('Armory'))}<div class="database-toolbar"><span class="database-state" id="database-status">${icon('shield')}<span>${embedded ? t('Loading…') : t('Desktop launcher required for embedded browsing')}</span></span><div class="button-row"><button class="secondary-button" data-action="database-reload" ${embedded ? '' : 'disabled'}>${icon('refresh')}Reload</button></div></div><div class="database-frame"><div class="database-placeholder">${icon('shield')}<strong>${t('Armory')}</strong><span>${embedded ? t('Loading…') : t('The native embedded browser appears here in the desktop launcher.')}</span></div><div class="database-viewport" id="database-viewport" aria-label="Armory"></div></div></div>`;
+}
+const embeddedStatuses = new Map();
 function formatIssueDate(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return t('Unknown');
@@ -269,18 +391,20 @@ async function loadIssues(force = false) {
 function updateDatabaseStatus() {
   const target = document.getElementById('database-status');
   if (!target) return;
-  const labels = { loading: t('Loading Ascension Database…'), ready: t('Ascension Database connected'), error: state.databaseMessage || t('Database could not be loaded') };
+  const saved = embeddedStatuses.get(state.page) || { state: 'loading', message: '' };
+  state.databaseStatus = saved.state; state.databaseMessage = saved.message;
+  const labels = state.page === 'armory' ? { loading: t('Loading…'), ready: t('Armory'), error: state.databaseMessage || t('Could not load Armory') } : { loading: t('Loading Ascension Database…'), ready: t('Ascension Database connected'), error: state.databaseMessage || t('Database could not be loaded') };
   target.className = `database-state ${state.databaseStatus}`;
-  target.innerHTML = lh`${icon(state.databaseStatus === 'error' ? 'info' : 'database')}<span>${escape(labels[state.databaseStatus] || labels.loading)}</span>`;
+  target.innerHTML = lh`${icon(state.databaseStatus === 'error' ? 'info' : state.page === 'armory' ? 'shield' : 'database')}<span>${escape(labels[state.databaseStatus] || labels.loading)}</span>`;
 }
 function syncDatabaseView() {
-  if (!window.launcher || state.page !== 'database' || modal.open) return;
+  if (!window.launcher || !isEmbeddedPage() || modal.open) return;
   const host = document.getElementById('database-viewport');
   if (!host) return;
   const bounds = host.getBoundingClientRect();
   if (bounds.width < 100 || bounds.height < 100) return;
   guarded(async () => {
-    await api.databaseView({ visible: true, bounds: { x: bounds.left, y: bounds.top, width: bounds.width, height: bounds.height } });
+    await api.databaseView({ visible: true, page: state.page, bounds: { x: bounds.left, y: bounds.top, width: bounds.width, height: bounds.height } });
   });
 }
 function showIssue(number) {
@@ -328,6 +452,7 @@ function addonStatus(addon) {
 function filteredAddons() {
   const query = state.addonQuery.trim().toLowerCase();
   return state.addons.filter(addon => {
+    if (state.addonTab === 'browse' && addon.catalog === false) return false;
     if (state.addonTab === 'installed' && addon.status === 'not-installed') return false;
     if (state.addonCategory !== 'all' && addon.category !== state.addonCategory) return false;
     if (!query) return true;
@@ -374,7 +499,7 @@ function renderAddonCatalog() {
 async function loadAddons(force = false, verify = false) {
   if (state.addonLoading) return;
   const clientPath = state.client.path || '';
-  if (!force && state.addons.length && state.addonClientPath === clientPath) { renderAddonCatalog(); return; }
+  if (!force && (state.addonLoaded || state.addons.length || state.addonError) && state.addonClientPath === clientPath) { renderAddonCatalog(); return; }
   state.addonLoading = true; state.addonError = ''; renderAddonCatalog();
   try {
     const result = await api.addons(verify);
@@ -384,7 +509,11 @@ async function loadAddons(force = false, verify = false) {
     state.addons = Array.isArray(result?.packages) ? result.packages : [];
     state.addonFolderCount = Number.isInteger(result?.folderCount) ? result.folderCount : 0;
   } catch (error) { if ((state.client.path || '') === clientPath) state.addonError = tm(error.message) || t('The addon catalog could not be loaded.'); }
-  finally { state.addonLoading = false; if (state.page === 'addons') render(); }
+  finally {
+    if ((state.client.path || '') === clientPath) { state.addonClientPath = clientPath; state.addonLoaded = true; }
+    state.addonLoading = false;
+    if (state.page === 'addons') render();
+  }
 }
 function showAddonDetails(packageId) {
   const addon = state.addons.find(item => item.id === packageId);
@@ -412,11 +541,11 @@ async function installAddon(packageId, button) {
 function confirmAddonUninstall(packageId) {
   const addon = state.addons.find(item => item.id === packageId);
   if (!addon) return;
-  openModal(lh`${modalHeader(lt`Uninstall ${addon.name}?`, t('Addon management'))}<div class="modal-body"><p>This removes unchanged launcher-installed files for <strong>${escape(addon.name)}</strong> from the selected client. Your modified files, manual additions and SavedVariables are kept.</p><div class="info-box">${icon('shield')}<span>Removal is blocked if another installed addon requires this package. Separate dependency packages are kept.</span></div></div><div class="modal-footer"><button class="secondary-button" data-action="dismiss-modal">Cancel</button><button class="gold-button danger-button" data-addon-confirm-uninstall="${escape(addon.id)}">Uninstall addon</button></div>`);
+  openModal(lh`${modalHeader(lt`Uninstall ${addon.name}?`, t('Addon management'))}<div class="modal-body"><p>This removes unchanged launcher-installed files for <strong>${escape(addon.name)}</strong> from the selected client. Your modified files, manual additions and SavedVariables are kept.</p><div class="info-box">${icon('shield')}<span>Removal is blocked if another installed addon requires this package. Separate dependency packages are kept.</span></div></div><label class="setting-row"><input type="checkbox" id="remove-modified-addon-files"><span>${t('Also remove modified launcher-installed files. This cannot be undone. Manual additions and SavedVariables are kept.')}</span></label><div class="modal-footer"><button class="secondary-button" data-action="dismiss-modal">Cancel</button><button class="gold-button danger-button" data-addon-confirm-uninstall="${escape(addon.id)}">Uninstall addon</button></div>`);
 }
 async function uninstallAddon(packageId, button) {
   if (button) button.disabled = true;
-  const response = await api.uninstallAddon(packageId);
+  const response = await api.uninstallAddon(packageId, document.getElementById('remove-modified-addon-files')?.checked === true);
   state.addons = response.catalog.packages;
   state.addonFolderCount = response.catalog.folderCount;
   closeModal();
@@ -425,30 +554,32 @@ async function uninstallAddon(packageId, button) {
 }
 function render() {
   popoverRoot.innerHTML = '';
-  if (state.page !== 'database') api.databaseView({ visible: false }).catch(() => {});
-  main.classList.toggle('database-mode', state.page === 'database');
+  if (!isEmbeddedPage()) api.databaseView({ visible: false }).catch(() => {});
+  main.classList.toggle('database-mode', isEmbeddedPage());
   for (const button of document.querySelectorAll('.nav-link[data-page]')) { const active = button.dataset.page === state.page; button.classList.toggle('active', active); if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current'); }
   if (state.page === 'home') main.innerHTML = homePage();
   else if (state.page === 'news') main.innerHTML = newsPage();
   else if (state.page === 'bugtracker') main.innerHTML = bugtrackerPage();
-  else if (state.page === 'database') main.innerHTML = databasePage();
+  else if (isEmbeddedPage()) main.innerHTML = databasePage();
   else if (state.page === 'addons') main.innerHTML = addonsPage();
+  else if (state.page === 'builder') window.launcherBuilder.mount(main);
   else main.innerHTML = servicePage(state.page);
   document.getElementById('footer-client').textContent = state.client.running ? t('Game running') : (state.client.addonsReady || state.client.installed) ? t('Client ready') : t('No client selected');
   document.getElementById('version').textContent = `v${state.version}`;
   fillIcons();
   if (state.page === 'bugtracker') loadIssues();
   if (state.page === 'addons') loadAddons();
-  if (state.page === 'database') { updateDatabaseStatus(); requestAnimationFrame(syncDatabaseView); }
+  if (isEmbeddedPage()) { updateDatabaseStatus(); requestAnimationFrame(syncDatabaseView); }
 }
 function showService(key) {
   if (key === 'discord') {
     const community = state.discord;
     const available = community?.available && community.guildId === state.config.discord?.guildId;
-    const counts = available && Number.isInteger(community.online) && Number.isInteger(community.members)
-      ? lt`Approximately ${community.online.toLocaleString(launcherI18n.language)} online · ${community.members.toLocaleString(launcherI18n.language)} members`
-      : t('Community counts are currently unavailable.');
-    openModal(lh`${modalHeader(t('Conquest on Discord'), t('Your adventure is better together'))}<div class="modal-body"><div class="empty-panel"><span class="empty-emblem">${icon('discord')}</span><h2>Join our community</h2><p>Meet other players, find a guild, and share your adventures.</p><div class="service-details" role="status">${escape(counts)}</div></div></div><div class="modal-footer"><button class="secondary-button" data-action="dismiss-modal">Back to launcher</button><button class="gold-button" data-external="discord">${icon('discord')}Join Discord ${icon('external')}</button></div>`);
+    const hasCounts = available && Number.isInteger(community.online) && Number.isInteger(community.members);
+    const stats = hasCounts
+      ? lh`<div class="community-stats"><div><strong><span class="community-online-dot" aria-hidden="true"></span>${escape(community.online.toLocaleString(launcherI18n.language))}</strong><span>${t('Online now')}</span></div><div><strong>${escape(community.members.toLocaleString(launcherI18n.language))}</strong><span>${t('Members')}</span></div></div>`
+      : lh`<p class="community-counts-unavailable" role="status">${t('Community counts are currently unavailable.')}</p>`;
+    openModal(lh`${modalHeader(t('Conquest on Discord'), t('Your adventure is better together'))}<div class="community-banner"><img src="assets/ascension-emblem.webp" alt="" class="community-crest"><span class="community-banner-label">Conquest of AzerothCore</span><span class="community-discord-badge">${icon('discord')}Discord</span></div><div class="modal-body community-body"><h2>${t('Join our community')}</h2><p>${t('Meet other players, find a guild, and share your adventures.')}</p>${stats}<div class="community-features"><div>${icon('user')}<span>${t('Find groups & guilds')}</span></div><div>${icon('info')}<span>${t('Get help')}</span></div><div>${icon('news')}<span>${t('Follow news & events')}</span></div></div></div><div class="modal-footer community-footer"><button class="ghost-button" data-action="dismiss-modal">${t('Back to launcher')}</button><button class="gold-button community-join" data-external="discord">${icon('discord')}${t('Join Discord')}${icon('external')}</button></div>`, 'community-dialog');
     return;
   }
   if (state.config.links[key]) { guarded(() => api.external(key)); return; }
@@ -478,11 +609,11 @@ function accountPlayTime(value) {
 }
 function showAccountLogin(prefill = '', notice = '') {
   state.account = null; state.accountOverview = null; state.accountCharacters = []; state.discordLink = null;
-  openModal(lh`${modalHeader(t('Welcome, adventurer'), t('Sign in with your game account'))}<form id="launcher-login"><div class="modal-body">${notice ? lh`<div class="info-box" role="status">${icon('check')}<span>${escape(notice)}</span></div>` : ''}<label class="form-label" for="account-login">Account name or email</label><input class="account-input" id="account-login" autocomplete="username" maxlength="254" value="${escape(prefill)}" required><label class="form-label" for="account-password">Password</label><input class="account-input" id="account-password" type="password" autocomplete="current-password" maxlength="128" required><p id="login-error" role="alert"></p><div class="account-actions"><button type="submit" class="gold-button">Sign in</button><button type="button" class="secondary-button" data-action="register">Create account</button><button type="button" class="ghost-button" data-external="account">Account help</button></div><p class="credits">Your password is never saved. Your session is protected by Windows.</p></div></form>`);
+  openModal(lh`${modalHeader(t('Welcome, adventurer'), t('Sign in with your game account'))}<form id="launcher-login"><div class="modal-body">${notice ? lh`<div class="info-box" role="status">${icon('check')}<span>${escape(notice)}</span></div>` : ''}<label class="form-label" for="account-login">Account name or email</label><input class="account-input" id="account-login" autocomplete="username" maxlength="254" value="${escape(prefill)}" required><label class="form-label" for="account-password">Password</label><input class="account-input" id="account-password" type="password" autocomplete="current-password" maxlength="128" required><div id="login-two-factor" hidden><label class="form-label" for="account-code">Authenticator or recovery code</label><input class="account-input" id="account-code" autocomplete="one-time-code" maxlength="256" spellcheck="false"><p>Enter the code from your authenticator app or a recovery code.</p></div><label class="setting-row"><input type="checkbox" id="remember-account" checked><span>Remember me on this PC</span></label><p class="credits">With automatic game login enabled, Remember me also saves your game credentials using system encryption.</p><p id="login-error" role="alert"></p><div class="account-actions"><button type="submit" class="gold-button">Sign in</button><button type="button" class="secondary-button" data-action="register">Create account</button><button type="button" class="ghost-button" data-external="account">Account help</button></div><p class="credits">Remembered sign-in is protected by system encryption. Sign out to remove saved credentials.</p></div></form>`);
   document.getElementById(prefill ? 'account-password' : 'account-login').focus();
 }
 function showRegister() {
-  openModal(lh`${modalHeader(t('Create account'), t('Your next chapter starts here'))}<div class="modal-body register-body"><aside class="register-art"><img src="assets/ascension-emblem.webp" alt="" class="register-crest"><div class="register-art-copy"><span class="account-kicker">CONQUEST OF AZEROTHCORE</span><h3>A world<br>worth returning to</h3><span class="register-art-rule"></span><p>Begin your adventure.<br>Make Azeroth your own.</p></div><span class="register-realm-tag">PUBLIC TEST REALM</span></aside><section class="register-form-panel" aria-label="Account details"><div class="register-intro"><span class="account-kicker">YOUR ADVENTURE BEGINS HERE</span><h3>Join the Conquest</h3><p>One account for the launcher and the game.</p></div><div id="register-error" class="info-box register-error" role="alert" aria-live="assertive" style="display:none"></div><div class="report-grid"><label class="report-field"><span>Account name</span><input id="register-username" type="text" maxlength="64" autocomplete="username" placeholder="Choose an account name"></label><label class="report-field"><span>Email address</span><input id="register-email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com"></label><label class="report-field"><span>Password</span><input id="register-password" type="password" maxlength="128" autocomplete="new-password" placeholder="Create a password"></label><label class="report-field"><span>Confirm password</span><input id="register-confirm" type="password" maxlength="128" autocomplete="new-password" placeholder="Repeat your password"></label></div><label class="register-consent"><input id="register-test-warning" type="checkbox"><span><strong>Ready to explore the test realm</strong><span>I understand this account is for the Conquest of AzerothCore public test realm.</span></span></label><div class="register-account-note">${icon('shield')}<span>Use these same details to sign in to the launcher and enter Azeroth.</span></div></section></div><div class="modal-footer"><span class="register-footer-note">Already an adventurer?</span><button class="secondary-button" data-action="account-back">Back to sign in</button><button class="gold-button" data-action="account-register">${icon('user')}Create account</button></div>`, 'register-dialog');
+  openModal(lh`${modalHeader(t('Create account'), t('Your next chapter starts here'))}<div class="modal-body register-body"><aside class="register-art"><img src="assets/ascension-emblem.webp" alt="" class="register-crest"><div class="register-art-copy"><span class="account-kicker">CONQUEST OF AZEROTHCORE</span><h3>A world<br>worth returning to</h3><span class="register-art-rule"></span><p>Begin your adventure.<br>Make Azeroth your own.</p></div><span class="register-realm-tag">LIVE / PUBLIC</span></aside><section class="register-form-panel" aria-label="Account details"><div class="register-intro"><span class="account-kicker">YOUR ADVENTURE BEGINS HERE</span><h3>Join the Conquest</h3><p>One account for the launcher and the game.</p></div><div id="register-error" class="info-box register-error" role="alert" aria-live="assertive" style="display:none"></div><div class="report-grid"><label class="report-field"><span>Account name</span><input id="register-username" type="text" maxlength="64" autocomplete="username" placeholder="Choose an account name"></label><label class="report-field"><span>Email address</span><input id="register-email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com"></label><label class="report-field"><span>Password</span><input id="register-password" type="password" maxlength="128" autocomplete="new-password" placeholder="Create a password"></label><label class="report-field"><span>Confirm password</span><input id="register-confirm" type="password" maxlength="128" autocomplete="new-password" placeholder="Repeat your password"></label></div><label class="register-consent"><input id="register-test-warning" type="checkbox"><span><strong>Ready to explore Azeroth</strong><span>I understand this account is for the Conquest of AzerothCore live and PTR realms.</span></span></label><div class="register-account-note">${icon('shield')}<span>Use these same details to sign in to the launcher and enter Azeroth.</span></div></section></div><div class="modal-footer"><span class="register-footer-note">Already an adventurer?</span><button class="secondary-button" data-action="account-back">Back to sign in</button><button class="gold-button" data-action="account-register">${icon('user')}Create account</button></div>`, 'register-dialog');
   requestAnimationFrame(() => document.getElementById('register-username')?.focus());
 }
 function showRegistrationError(message) {
@@ -505,13 +636,37 @@ async function submitAccountLogin(button) {
   if (!login || !password) { toast(t('Enter your account name/email and password.')); return; }
   if (button) button.disabled = true;
   try {
-    state.account = await api.login(login, password);
+    const codeInput = document.getElementById('account-code');
+    const codeRequired = document.getElementById('login-two-factor')?.hidden === false;
+    const result = await api.login(login, password, codeRequired ? codeInput.value : undefined, document.getElementById('remember-account')?.checked !== false);
+    if (result?.twoFactorRequired === true) {
+      const section = document.getElementById('login-two-factor');
+      section.hidden = false;
+      codeInput.required = true;
+      codeInput.value = '';
+      document.getElementById('login-error').textContent = tm(result.message);
+      codeInput.focus();
+      return;
+    }
+    const enteringLauncher = typeof syncAuthGate === 'function' && !state.account;
+    state.account = result;
+    if (typeof syncAuthGate === 'function') syncAuthGate(result);
+    document.getElementById('account-password').value = '';
+    if (codeInput) codeInput.value = '';
     document.getElementById('account-password')?.setAttribute('value', '');
-    await loadAccountDashboard();
+    if (enteringLauncher) { closeModal(); state.page = 'home'; render(); }
+    else await loadAccountDashboard();
     toast(state.account?.persistenceWarning || lt`Welcome back, ${state.account?.username || login}.`);
-  } finally {
+  } catch (error) {
     const passwordInput = document.getElementById('account-password');
     if (passwordInput) passwordInput.value = '';
+    const codeInput = document.getElementById('account-code');
+    if (codeInput) codeInput.value = '';
+    const box = document.getElementById('login-error');
+    if (box) box.textContent = tm(error.message);
+  } finally {
+    const passwordInput = document.getElementById('account-password');
+    if (passwordInput && document.getElementById('login-two-factor')?.hidden !== false) passwordInput.value = '';
     if (button?.isConnected) button.disabled = false;
   }
 }
@@ -533,7 +688,7 @@ async function submitAccountRegistration(button) {
     return;
   }
   if (!acceptTestWarning) {
-    showRegistrationError(t('Confirm that you understand this is a public test realm.'));
+    showRegistrationError(t('Confirm that you understand this account is for the live and PTR realms.'));
     return;
   }
 
@@ -643,6 +798,7 @@ async function showAccount() {
 async function logoutAccount() {
   await api.logout();
   state.account = null; state.accountOverview = null; state.accountCharacters = []; state.discordLink = null;
+  if (typeof syncAuthGate === 'function') syncAuthGate(null);
   showAccountLogin('', t('You have been signed out.'));
 }
 function showTrailer() {
@@ -672,10 +828,12 @@ function toggleRow(key, title, description) { return lh`<label class="setting-ro
 function showSettings(tab = state.settingsTab) {
   state.settingsTab = tab;
   let body;
-  if (tab === 'launcher') body = lh`<h3>Launcher settings</h3><p>Make yourself at home.</p><label class="setting-row"><span class="setting-title">Language</span><select data-setting="language" aria-label="Language">${languageOptions()}</select></label><label class="setting-row"><span class="setting-title">Start page</span><select data-setting="startPage" aria-label="Start page"><option value="home" ${state.settings.startPage === 'home' ? 'selected' : ''}>Home</option><option value="news" ${state.settings.startPage === 'news' ? 'selected' : ''}>News</option></select></label>${toggleRow('closeOnLaunch', t('Minimize on game launch'), t('Keep the launcher out of the way while you play.'))}${toggleRow('reducedMotion', t('Reduce motion'), t('Turn off interface animations and transitions.'))}<p class="credits">Settings are saved automatically on this computer.</p>`;
+  if (tab === 'launcher') body = lh`<h3>Launcher settings</h3><p>Make yourself at home.</p><label class="setting-row"><span class="setting-title">Language</span><select data-setting="language" aria-label="Language">${languageOptions()}</select></label><label class="setting-row"><span class="setting-title">Start page</span><select data-setting="startPage" aria-label="Start page"><option value="home" ${state.settings.startPage === 'home' ? 'selected' : ''}>Home</option><option value="news" ${state.settings.startPage === 'news' ? 'selected' : ''}>News</option></select></label>${toggleRow('reducedMotion', t('Reduce motion'), t('Turn off interface animations and transitions.'))}<p class="credits">Settings are saved automatically on this computer.</p>`;
   else if (tab === 'game') body = lh`<h3>Conquest of AzerothCore</h3><p>Game installation and maintenance.</p><label class="form-label">Client folder</label><div class="path-field">${icon('folder')}<span>${escape(state.client.path || t('No client selected'))}</span></div><div class="button-row"><button class="gold-button" data-action="choose-client">Browse</button><button class="secondary-button" data-action="open-folder" ${state.client.installed ? '' : 'disabled'}>Open folder</button></div><div class="setting-row"><span><span class="setting-title">Client status</span><span class="setting-description">${state.client.installed ? t('Game executable found.') : t('Select the folder containing Ascension.exe.')}</span></span><span class="inline-badge">${state.client.installed ? t('READY') : t('NOT SET')}</span></div><div class="button-row"><button class="secondary-button" data-action="repair">${icon('shield')}Scan & repair</button><button class="secondary-button" data-action="check-updates">${icon('refresh')}Check for updates</button></div><p class="credits">Repair and updates require your client release service.</p>`;
+  else if (tab === 'downloads') body = lh`<h3>Downloads</h3><p>Manage the bandwidth used by client downloads and repairs.</p><label class="setting-row"><span><span class="setting-title">Download speed limit (MB/s)</span><span class="setting-description">0 = Unlimited. Changes apply to the current download.</span></span><input class="download-speed-input" type="number" data-setting="downloadLimitMBps" aria-label="Download speed limit (MB/s)" min="0" max="10000" step="0.1" value="${state.settings.downloadLimitMBps || 0}"></label><p class="credits">Limits client downloads and repairs. Launcher updates are not limited.</p>`;
   else body = lh`<h3>Conquest of AzerothCore</h3><p>Launcher version ${escape(state.version)}</p><div class="setting-row"><span class="setting-title">Platform</span><span class="setting-description">${window.launcher ? t('Windows desktop') : t('Browser')}</span></div>`;
-  openModal(lh`${modalHeader(t('Settings'), 'Conquest of AzerothCore')}<div class="settings-grid"><aside class="settings-sidebar"><button data-settings-tab="launcher" class="${tab === 'launcher' ? 'active' : ''}">${icon('monitor')}Launcher</button><button data-settings-tab="game" class="${tab === 'game' ? 'active' : ''}">${icon('play')}Game client</button><button data-settings-tab="about" class="${tab === 'about' ? 'active' : ''}">${icon('info')}About</button><small>v${escape(state.version)}</small></aside><div class="settings-pane">${body}</div></div><div class="modal-footer"><button class="gold-button" data-action="dismiss-modal">Done</button></div>`, 'settings-dialog');
+  if (tab === 'about') body += launcherCreditsHtml();
+  openModal(lh`${modalHeader(t('Settings'), 'Conquest of AzerothCore')}<div class="settings-grid"><aside class="settings-sidebar"><button data-settings-tab="launcher" class="${tab === 'launcher' ? 'active' : ''}">${icon('monitor')}Launcher</button><button data-settings-tab="game" class="${tab === 'game' ? 'active' : ''}">${icon('play')}Game client</button><button data-settings-tab="downloads" class="${tab === 'downloads' ? 'active' : ''}">${icon('download')}Downloads</button><button data-settings-tab="about" class="${tab === 'about' ? 'active' : ''}">${icon('info')}About</button><small>v${escape(state.version)}</small></aside><div class="settings-pane">${body}</div></div><div class="modal-footer"><button class="gold-button" data-action="dismiss-modal">Done</button></div>`, 'settings-dialog');
 }
 function showPopover(button, kind) {
   if (popoverRoot.dataset.open === kind && popoverRoot.childElementCount) { popoverRoot.innerHTML = ''; return; }
@@ -709,6 +867,7 @@ const actions = {
   minimize: () => api.window('minimize'), maximize: () => api.window('maximize'), close: () => api.window('close'),
   settings: () => showSettings('launcher'), 'game-settings': () => showSettings('game'),
   'dismiss-modal': closeModal,
+  'view-license': showLegalNotices,
   'choose-client': chooseClient,
   'open-folder': () => api.openFolder(),
   'check-updates': () => pendingUpdate(false), repair: () => pendingUpdate(true),
@@ -734,8 +893,8 @@ const actions = {
   wiki: () => showService('wiki'), discord: () => showService('discord'), support: () => showService('support'),
   welcome: () => showArticle('welcome'), trailer: showTrailer,
   'database-reload': async () => {
-    state.databaseStatus = 'loading'; state.databaseMessage = ''; updateDatabaseStatus();
-    await api.reloadDatabase();
+    embeddedStatuses.set(state.page, { state: 'loading', message: '' }); updateDatabaseStatus();
+    await api.reloadDatabase(state.page);
     requestAnimationFrame(syncDatabaseView);
   },
   'refresh-issues': () => loadIssues(true),
@@ -771,21 +930,27 @@ document.addEventListener('change', event => {
   const element = event.target;
   if (element.id === 'addon-category') { state.addonCategory = element.value; renderAddonCatalog(); return; }
   if (!element.dataset.setting) return;
+  if (element.dataset.setting === 'downloadLimitMBps' && (!element.value.trim() || !element.checkValidity())) { element.reportValidity(); return; }
   guarded(async () => {
     element.disabled = true;
     try {
-      const patch = { [element.dataset.setting]: element.type === 'checkbox' ? element.checked : element.value };
+
+      const patch = { [element.dataset.setting]: element.type === 'checkbox' ? element.checked : element.dataset.setting === 'downloadLimitMBps' ? Number(element.value) : element.value };
       state.settings = await api.saveSettings(patch);
       if (element.dataset.setting === 'language') applyLanguage(state.settings.language);
       document.body.classList.toggle('motion-reduced', state.settings.reducedMotion);
-      toast(t('Settings saved.'));
+      toast(t(element.dataset.setting === 'autoLoginGame' && element.checked ? 'Automatic game login enabled. Sign out and sign into the launcher again before pressing Play.' : 'Settings saved.'));
     } finally { element.disabled = false; }
   });
 });
-window.addEventListener('resize', () => { popoverRoot.innerHTML = ''; if (state.page === 'database') requestAnimationFrame(syncDatabaseView); });
-main.addEventListener('scroll', () => { if (state.page === 'database') requestAnimationFrame(syncDatabaseView); });
+window.addEventListener('resize', () => { popoverRoot.innerHTML = ''; if (isEmbeddedPage()) requestAnimationFrame(syncDatabaseView); });
+main.addEventListener('scroll', () => { if (isEmbeddedPage()) requestAnimationFrame(syncDatabaseView); });
 api.onDatabaseStatus(status => {
   if (!status || typeof status !== 'object') return;
+  const page = status.page || 'database';
+  if (page !== 'database' && page !== 'armory') return;
+  embeddedStatuses.set(page, { state: status.state === 'ready' || status.state === 'error' ? status.state : 'loading', message: typeof status.message === 'string' ? status.message : '' });
+  if (page !== state.page) return;
   state.databaseStatus = status.state === 'ready' || status.state === 'error' ? status.state : 'loading';
   state.databaseMessage = typeof status.message === 'string' ? status.message : '';
   updateDatabaseStatus();
@@ -793,13 +958,37 @@ api.onDatabaseStatus(status => {
 api.onGameExit(() => { state.client.running = false; render(); toast(t('Your game has closed.')); });
 async function start() {
   fillIcons();
+  let needsLanguageSelection = false;
   try {
     const data = await api.bootstrap(); Object.assign(state, data);
     launcherI18n.setLanguage(state.settings.language);
     state.page = state.settings.startPage || 'home';
     document.body.classList.toggle('motion-reduced', state.settings.reducedMotion);
     refreshLanguageShell();
+    needsLanguageSelection = !state.settings.languageSelected;
   } catch (error) { toast(lt`Could not load launcher settings: ${tm(error.message)}`); }
   render();
+  if (needsLanguageSelection) {
+    modal.addEventListener('close', () => { if (state.settings.languageSelected) setTimeout(showAddonCleanupReminder, 0); }, { once: true });
+    showFirstLanguage();
+  } else showAddonCleanupReminder();
 }
+const addonCleanupNoticeKey = 'coa.addon-catalog-cleanup.0.7.2';
+async function showAddonCleanupReminder() {
+  if (modal.open || state.settings.addonCleanupDismissed === true) return;
+  try { if (localStorage.getItem(addonCleanupNoticeKey)) return; } catch (_) {}
+  const clientPath = state.client.path;
+  if (!clientPath) return;
+  let inventory;
+  try { inventory = await api.addons(false); } catch (_) { return; }
+  if (modal.open || state.settings.addonCleanupDismissed === true || state.client.path !== clientPath) return;
+  if (!inventory?.packages?.some(addon => addon.catalog === false && addon.managed === true && addon.status !== 'not-installed')) return;
+  openModal(lh`${modalHeader(t('Please remove old launcher addons'), t('Addon catalog update'))}<div class="modal-body"><p>${t('The old launcher addon catalog has been cleared because its outdated addons can override addons supplied by patch B.')}</p><div class="info-box">${icon('addons')}<span>${t('Open Addons and uninstall any addons you previously installed through the launcher catalog. If you never installed catalog addons, no action is needed.')}</span></div><p>${t('Nothing will be removed automatically. Modified files may need manual removal after uninstalling.')}</p><label class="setting-row"><input type="checkbox" id="dismiss-addon-cleanup-permanently" data-setting="addonCleanupDismissed"><span>${t('Do not remind me again')}</span></label></div><div class="modal-footer"><button class="secondary-button" data-action="dismiss-modal">${t('Later')}</button><button class="gold-button" data-action="review-old-addons">${icon('addons')}${t('Review installed addons')}</button></div>`, 'addon-cleanup-dialog');
+}
+actions['review-old-addons'] = () => {
+  closeModal();
+  state.page = 'addons';
+  state.addonTab = 'installed';
+  render();
+};
 window.addEventListener('DOMContentLoaded', start);

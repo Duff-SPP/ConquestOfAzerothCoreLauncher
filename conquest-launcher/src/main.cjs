@@ -1,7 +1,8 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, protocol, net, session, safeStorage } = require('electron');
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
+const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, protocol, net, session, safeStorage, nativeImage } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs/promises');
-const { launchGame } = require('./game-launch.cjs');
+const { launchGame, applyLauncherLaunchBehavior } = require('./game-launch.cjs');
 const { pathToFileURL } = require('node:url');
 const { readSettings, saveSettings, externalUrl } = require('./settings.cjs');
 const { translateNative } = require('./launcher-language.cjs');
@@ -11,7 +12,10 @@ const config = require('../launcher.config.json');
 const { ClientUpdater } = require('./client-updater.cjs');
 const { safePath } = require('./release-format.cjs');
 const { validateClientFolder, probeClientFolder } = require('./client-folder.cjs');
+const { clearClientCache } = require('./client-cache.cjs');
+const { configureClientGraphics } = require('./client-graphics.cjs');
 const { Portal } = require('./portal.cjs');
+const { GameCredentials } = require('./game-credentials.cjs');
 const { requireGameClosed, isGameRunning, configureRealm } = require('./game-safety.cjs');
 const { createLauncherUpdates } = require('./launcher-updates.cjs');
 const localTesting = !app.isPackaged && process.env.COA_LOCAL_TEST === '1';
@@ -33,10 +37,18 @@ function writableClient(directory) {
     app.isPackaged ? path.dirname(app.getPath('exe')) : path.join(__dirname, '..')
   ).toLowerCase();
 
+  // A dedicated client subfolder is safe; Electron/runtime directories are not.
+  const relative = path.relative(launcherRoot, target);
+  if (relative && !relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative)) {
+    const branch = relative.split(path.sep)[0];
+    if (['resources', 'locales', 'swiftshader', 'src', 'public', 'node_modules', 'build', 'tools', 'test', 'localization', '.git', '.coa-launcher'].includes(branch)) {
+      throw new Error('Choose a dedicated client subfolder, not a launcher runtime folder.');
+    }
+  }
+
   if (
     target === path.parse(target).root ||
     target === launcherRoot ||
-    target.startsWith(launcherRoot + path.sep) ||
     launcherRoot.startsWith(target + path.sep)
   ) {
     throw new Error('Choose a dedicated client folder outside the launcher installation.');
@@ -51,13 +63,15 @@ let window = null;
 let settings = null;
 let settingsFile = '';
 let game = null;
-let databaseView = null;
+const embeddedViews = new Map();
 let saveQueue = Promise.resolve();
 let issueCache = { loadedAt: 0, issues: [] };
 let addonService = null;
 let clientUpdater = null;
 let launcherUpdates = null;
 let portal = null;
+let gameCredentials = null;
+app.on('before-quit', () => portal?.clearGameLogin());
 let clientMutation = false;
 async function requireIdleClient(validatePath = true) {
   if (validatePath) writableClient(settings?.installPath);
@@ -89,6 +103,7 @@ async function mutateClient(action) {
 }
 function sendStatus(channel, status) { if (window && !window.isDestroyed()) window.webContents.send(channel, status); }
 const publicRoot = path.resolve(__dirname, '../public');
+const updateTaskbarBadge = require('./taskbar-badge.cjs').createTaskbarBadge(() => window, nativeImage, path.join(publicRoot, 'assets'));
 const appUrl = 'conquest://launcher/index.html';
 const issueCacheMs = 2 * 60 * 1000;
 
@@ -112,7 +127,13 @@ function handle(name, action) {
     if (!window || event.sender !== window.webContents || event.senderFrame !== window.webContents.mainFrame || event.senderFrame.url !== appUrl) {
       throw new Error('Untrusted launcher request.');
     }
-    try { return { ok: true, value: await action(...args) }; }
+    try {
+      if (['launcher:client-check', 'launcher:client-update', 'launcher:launch', 'launcher:choose-client', 'launcher:choose-install'].includes(name) && !await portal.account()) {
+        await gameCredentials.write(null);
+        throw new Error('Please sign in with your game account.');
+      }
+      return { ok: true, value: await action(...args) };
+    }
     catch (error) { return { ok: false, error: error.message || 'The request could not be completed.' }; }
   });
 }
@@ -140,9 +161,9 @@ async function clientInfo() {
   }
 }
 
-function sendDatabaseStatus(state, message = '') {
+function sendDatabaseStatus(state, message = '', page = 'database') {
   if (!window || window.isDestroyed()) return;
-  window.webContents.send('launcher:database-status', { state, message });
+  window.webContents.send('launcher:database-status', { state, message, page });
 }
 
 function openSafeExternal(value) {
@@ -150,19 +171,22 @@ function openSafeExternal(value) {
   return shell.openExternal(url.href);
 }
 
-function ensureDatabaseView() {
+function ensureDatabaseView(page = 'database') {
+  if (page !== 'database' && page !== 'armory') throw new Error('Unknown embedded page.');
+  let databaseView = embeddedViews.get(page);
   if (databaseView && !databaseView.webContents.isDestroyed()) return databaseView;
   if (!window) throw new Error('Launcher window is not ready.');
 
-  const target = trustedHttps(config.databaseEmbedUrl || config.links?.database, 'Database URL');
+  const target = trustedHttps(page === 'armory' ? config.links?.armory : config.databaseEmbedUrl || config.links?.database, 'Embedded page URL');
   const targetOrigin = target.origin;
-  const databaseSession = session.fromPartition('coa-database');
+  const partition = `coa-${page}`;
+  const databaseSession = session.fromPartition(partition);
   databaseSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
   databaseSession.setPermissionCheckHandler(() => false);
 
   databaseView = new WebContentsView({
     webPreferences: {
-      partition: 'coa-database',
+      partition,
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -176,6 +200,7 @@ function ensureDatabaseView() {
   databaseView.setBackgroundColor('#160e0d');
   databaseView.setBorderRadius(8);
   window.contentView.addChildView(databaseView);
+  embeddedViews.set(page, databaseView);
 
   const contents = databaseView.webContents;
   contents.setWindowOpenHandler(details => {
@@ -195,12 +220,13 @@ function ensureDatabaseView() {
       openSafeExternal(next.href).catch(() => {});
     }
   });
-  contents.on('did-start-loading', () => sendDatabaseStatus('loading'));
-  contents.on('did-stop-loading', () => sendDatabaseStatus('ready'));
+  let failed = false;
+  contents.on('did-start-loading', () => { failed = false; sendDatabaseStatus('loading', '', page); });
+  contents.on('did-stop-loading', () => { if (!failed) sendDatabaseStatus('ready', '', page); });
   contents.on('did-fail-load', (_event, errorCode, errorDescription, _validatedUrl, isMainFrame) => {
-    if (isMainFrame && errorCode !== -3) sendDatabaseStatus('error', errorDescription || 'Database could not be loaded.');
+    if (isMainFrame && errorCode !== -3) { failed = true; sendDatabaseStatus('error', errorDescription || 'Embedded page could not be loaded.', page); }
   });
-  contents.loadURL(target.href).catch(error => sendDatabaseStatus('error', error.message));
+  contents.loadURL(target.href).catch(error => { failed = true; sendDatabaseStatus('error', error.message, page); });
   return databaseView;
 }
 
@@ -343,7 +369,7 @@ async function main() {
   settings = await readSettings(settingsFile, message => dialog.showErrorBox(nativeText('Settings recovered'), message));
   const addonCatalogRoot = app.isPackaged ? path.join(process.resourcesPath, 'AddonCatalog') : path.resolve(__dirname, 'assets/AddonCatalog');
   addonService = new AddonService(addonCatalogRoot, { mandatoryFolders: config.mandatoryAddons || [], assetFolders: config.mandatoryAssetFolders || [] });
-  clientUpdater = new ClientUpdater(config.manifestUrl, { fetchImpl: electronFetch, allowLocalHttp: localTesting, notify: status => sendStatus('launcher:client-progress', status), beforeApply: async () => { if (game || clientMutation) throw new Error('Wait for the game or addon operation to finish.'); await requireGameClosed(settings?.installPath); } });
+  clientUpdater = new ClientUpdater(config.manifestUrl, { fetchImpl: electronFetch, downloadLimit: () => settings.downloadLimitMBps * 1024 ** 2, graphicsCompatibility: file => file === 'dxgi.dll' ? settings.disableGraphicsEnhancements === true : settings.graphicsCompatibility === true, allowLocalHttp: localTesting, notify: status => sendStatus('launcher:client-progress', status), beforeApply: async () => { if (game || clientMutation) throw new Error('Wait for the game or addon operation to finish.'); await requireGameClosed(settings?.installPath); } });
   launcherUpdates = createLauncherUpdates(app, status => sendStatus('launcher:update-status', status), async () => {
     if (clientUpdater?.busy || clientMutation) throw new Error('Wait for the current client operation to finish before restarting.');
   });
@@ -352,9 +378,13 @@ async function main() {
     allowLocalHttp: localTesting,
     cookieName: 'coa_launcher',
     sessionFile: path.join(app.getPath('userData'), 'launcher-account-session.bin'),
-    encrypt: value => { if (!safeStorage.isEncryptionAvailable()) throw new Error('Windows account encryption is unavailable.'); return safeStorage.encryptString(value); },
+    encrypt: value => { if (!safeStorage.isEncryptionAvailable() || safeStorage.getSelectedStorageBackend?.() === 'basic_text') throw new Error('Windows account encryption is unavailable.'); return safeStorage.encryptString(value); },
     decrypt: value => safeStorage.decryptString(value)
   });
+  gameCredentials = new GameCredentials(path.join(app.getPath('userData'), 'game-login.bin'),
+    value => { if (!safeStorage.isEncryptionAvailable() || safeStorage.getSelectedStorageBackend?.() === 'basic_text') throw new Error('Secure credential storage is unavailable.'); return safeStorage.encryptString(value); },
+    value => safeStorage.decryptString(value));
+  if (!settings.autoLoginGame) await gameCredentials.write(null);
   session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false));
   session.defaultSession.setPermissionCheckHandler(() => false);
   
@@ -408,15 +438,28 @@ session.defaultSession.webRequest.onBeforeSendHeaders(
     }
   });
   window.on('closed', () => {
-    if (databaseView && !databaseView.webContents.isDestroyed()) databaseView.webContents.close();
-    databaseView = null;
+    for (const view of embeddedViews.values()) if (!view.webContents.isDestroyed()) view.webContents.close();
+    embeddedViews.clear();
     window = null;
   });
 
   handle('launcher:bootstrap', async () => ({ config, settings, client: await clientInfo(), version: app.getVersion(), clientProgress: clientUpdater.status, launcherUpdate: launcherUpdates.status }));
-  handle('launcher:account', () => portal.account());
+  handle('launcher:taskbar-badge', count => updateTaskbarBadge(count));
+  handle('launcher:legal-notices', async () => {
+    const directory = app.isPackaged ? path.join(publicRoot, 'licenses') : path.resolve(__dirname, '../..');
+    return Promise.all(['LICENSE', 'COPYING', 'ATTRIBUTION.md', 'THIRD_PARTY_NOTICES.md'].map(async name => ({ name, text: await fs.readFile(path.join(directory, name), 'utf8') })));
+  });
+  handle('launcher:account', async () => { const account = await portal.account(); if (!account) await gameCredentials.write(null); return account; });
   handle('launcher:discord', () => portal.request('/api/community/discord'));
-  handle('launcher:login', (login, password) => portal.login(login, password));
+  handle('launcher:login', async (login, password, code, remember = true) => {
+    await gameCredentials.write(null);
+    const result = await portal.login(login, password, { rememberForGame: settings.autoLoginGame === true, code, rememberSession: remember !== false });
+    if (!result?.twoFactorRequired && result?.username && remember !== false && settings.autoLoginGame) {
+      try { await gameCredentials.write(portal.getGameLogin()); }
+      catch { result.persistenceWarning = 'Signed in, but game credentials could not be saved securely. Automatic game login will require signing in again after restart.'; }
+    }
+    return result;
+  });
   handle('launcher:register', (username, email, password, confirmPassword, acceptTestWarning) => portal.register(username, email, password, confirmPassword, acceptTestWarning));
   handle('launcher:account-overview', () => portal.overview());
   handle('launcher:account-characters', () => portal.characters());
@@ -429,7 +472,7 @@ session.defaultSession.webRequest.onBeforeSendHeaders(
     return { pending: true, expiresInSeconds: Number(result?.expiresInSeconds) || 600 };
   });
   handle('launcher:discord-link-unlink', () => portal.unlinkDiscord());
-  handle('launcher:logout', () => portal.logout());
+  handle('launcher:logout', async () => { await gameCredentials.write(null); return portal.logout(); });
 
   handle('launcher:launcher-check', () => launcherUpdates.check());
   handle('launcher:launcher-install', () => launcherUpdates.install());
@@ -444,12 +487,8 @@ session.defaultSession.webRequest.onBeforeSendHeaders(
     if (config.localDownloadDemo) throw new Error('Real client updates are disabled during the local download demo.');
     await requireIdleClient();
     if (settings.installPath) await probeClientFolder(settings.installPath);
-    await clientUpdater.update(settings.installPath, force === true, true);
-    try { await mutateClient(() => configureRealm(settings.installPath, config.realmlist)); }
-    catch (error) {
-      clientUpdater.emit('error', 'Client files updated, but realm setup failed: ' + error.message);
-      throw error;
-    }
+    try { await clientUpdater.update(settings.installPath, force === true, true); }
+    catch (error) { if (error.code === 'CLIENT_PAUSED') return { paused: true }; throw error; }
     clientUpdater.emit('ready', 'Your client is ready to play.');
     return clientInfo();
   });
@@ -462,11 +501,15 @@ session.defaultSession.webRequest.onBeforeSendHeaders(
   });
   handle('launcher:settings', async patch => {
     if (!patch || typeof patch !== 'object' || Array.isArray(patch)) throw new Error('Invalid settings.');
+    if (Object.hasOwn(patch, 'downloadLimitMBps') && (typeof patch.downloadLimitMBps !== 'number' || !Number.isFinite(patch.downloadLimitMBps) || !(patch.downloadLimitMBps === 0 || patch.downloadLimitMBps >= 0.1 && patch.downloadLimitMBps <= 10000))) throw new Error('Enter 0 for unlimited, or a speed between 0.1 and 10000 MB/s.');
     const next = { ...settings };
-    for (const key of ['language', 'startPage', 'closeOnLaunch', 'rememberClient', 'reducedMotion', 'sound']) {
+    for (const key of ['language', 'startPage', 'launchBehavior', 'autoLaunchAfterUpdate', 'addonCleanupDismissed', 'rememberClient', 'hdPatches', 'wineCompatibility', 'autoLoginGame', 'downloadLimitMBps', 'graphicsCompatibility', 'disableGraphicsEnhancements', 'reducedMotion', 'sound']) {
       if (Object.hasOwn(patch, key)) next[key] = patch[key];
     }
-    return persist(next);
+    if (Object.hasOwn(patch, 'language') && ['en', 'fr', 'es-ES', 'ru', 'zh-CN'].includes(patch.language)) next.languageSelected = true;
+    const saved = await persist(next);
+    if (saved.autoLoginGame === false && Object.hasOwn(patch, 'autoLoginGame')) { portal?.clearGameLogin(); await gameCredentials.write(null); }
+    return saved;
   });
   handle('launcher:choose-client', chooseClientFolder);
   handle('launcher:client-info', clientInfo);
@@ -475,17 +518,39 @@ session.defaultSession.webRequest.onBeforeSendHeaders(
     if (game) throw new Error('Your game is already running.');
     const info = await clientInfo();
     if (!info.installed) throw new Error('Choose your installed client first.');
+    await mutateClient(() => configureClientGraphics(info.path, settings.graphicsCompatibility, settings.disableGraphicsEnhancements));
     if (!config.localDownloadDemo) {
       await probeClientFolder(info.path);
       const release = await clientUpdater.check(info.path, false, true);
       if (release.needsUpdate) return { running: false, needsUpdate: true };
     }
-    await mutateClient(() => configureRealm(info.path, config.realmlist));
+    await mutateClient(async () => {
+      await clearClientCache(info.path);
+      await configureRealm(info.path, config.realmlist);
+    });
 
+    const credentialVersion = settings.autoLoginGame ? gameCredentials.version : 0;
+    let savedGameLogin = null;
+    if (settings.autoLoginGame) {
+      const account = await portal.account();
+      const credentials = portal.getGameLogin() || (account ? await gameCredentials.read(account.username) : null);
+      savedGameLogin = credentials;
+      if (!account || !credentials || account.username !== credentials.username) {
+        portal.clearGameLogin();
+        await gameCredentials.write(null);
+        throw new Error('Sign into the launcher again to use automatic game login.');
+      }
+    }
     const launched = {};
     game = launched;
     try {
-      launched.pid = await launchGame(path.join(info.path, path.basename(config.clientExecutable)));
+      launched.pid = await launchGame(path.join(info.path, path.basename(config.clientExecutable)), { hdPatches: settings.hdPatches, wineCompatibility: settings.wineCompatibility, getAutoLogin: () => {
+        if (!settings.autoLoginGame) return null;
+        if (credentialVersion !== gameCredentials.version) throw new Error('Sign into the launcher again to use automatic game login.');
+        const credentials = portal.getGameLogin() || savedGameLogin;
+        if (!credentials) throw new Error('Sign into the launcher again to use automatic game login.');
+        return credentials;
+      }, onLaunched: () => applyLauncherLaunchBehavior(settings.launchBehavior, { quit: () => app.quit(), minimize: () => { if (window && !window.isDestroyed()) window.minimize(); } }) });
     } catch (error) { game = null; throw error; }
     // Observe the independent process without owning its lifetime or I/O.
     const monitor = setInterval(() => {
@@ -498,7 +563,6 @@ session.defaultSession.webRequest.onBeforeSendHeaders(
       }
     }, 2000);
     monitor.unref();
-    if (settings.closeOnLaunch) window.minimize();
     return { running: true };
   });
   handle('launcher:open-folder', async () => {
@@ -515,16 +579,17 @@ session.defaultSession.webRequest.onBeforeSendHeaders(
   handle('launcher:database-view', async request => {
     if (!request || typeof request !== 'object') throw new Error('Invalid database view request.');
     if (request.visible === false) {
-      if (databaseView && !databaseView.webContents.isDestroyed()) databaseView.setVisible(false);
+      for (const view of embeddedViews.values()) if (!view.webContents.isDestroyed()) view.setVisible(false);
       return { visible: false };
     }
-    const view = ensureDatabaseView();
+    const view = ensureDatabaseView(request.page || 'database');
+    for (const other of embeddedViews.values()) if (other !== view && !other.webContents.isDestroyed()) other.setVisible(false);
     view.setBounds(databaseBounds(request.bounds));
     view.setVisible(true);
     return { visible: true };
   });
-  handle('launcher:database-reload', async () => {
-    const view = ensureDatabaseView();
+  handle('launcher:database-reload', async page => {
+    const view = ensureDatabaseView(page || 'database');
     view.webContents.reload();
   });
   handle('launcher:issues', async force => readIssues(force === true));
@@ -552,13 +617,17 @@ session.defaultSession.webRequest.onBeforeSendHeaders(
     const result = await addonService.install(packageId, info.path);
     return { result, catalog: await addonService.list(info.path) };
   }));
-  handle('launcher:addon-uninstall', async packageId => mutateClient(async () => {
+  handle('launcher:addon-uninstall', async (packageId, removeModified) => mutateClient(async () => {
     if (game) throw new Error('Close the game before uninstalling addons.');
     if (!addonService) throw new Error('Addon catalog is not ready.');
     const info = await clientInfo();
     if (!info.addonsReady) throw new Error('Choose your installed client first.');
-    const result = await addonService.uninstall(packageId, info.path);
+    const result = await addonService.uninstall(packageId, info.path, removeModified === true);
     return { result, catalog: await addonService.list(info.path) };
+  }));
+  handle('launcher:clear-cache', async () => mutateClient(async () => {
+    if (game) throw new Error('Close the game before clearing its cache.');
+    return clearClientCache(settings?.installPath);
   }));
   handle('launcher:open-addons-folder', async () => {
     const info = await clientInfo();

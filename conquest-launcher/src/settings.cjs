@@ -1,15 +1,22 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
-const defaults = Object.freeze({ language: 'en', startPage: 'home', closeOnLaunch: false, rememberClient: true, reducedMotion: false, sound: true, installPath: '' });
+const defaults = Object.freeze({ language: 'en', languageSelected: false, startPage: 'home', launchBehavior: 'close', autoLaunchAfterUpdate: true, addonCleanupDismissed: false, rememberClient: true, hdPatches: true, wineCompatibility: false, autoLoginGame: false, downloadLimitMBps: 0, graphicsCompatibility: false, disableGraphicsEnhancements: false, reducedMotion: false, sound: true, installPath: '' });
 function sanitize(value) {
   const result = { ...defaults };
   if (!value || typeof value !== 'object') return result;
-  if (['en', 'fr', 'es-ES', 'ru', 'zh-CN'].includes(value.language)) result.language = value.language;
+  if (['en', 'fr', 'es-ES', 'ru', 'zh-CN'].includes(value.language)) {
+    result.language = value.language;
+    // Keep valid preferences from older launchers without a selection marker.
+    result.languageSelected = typeof value.languageSelected === 'boolean' ? value.languageSelected : true;
+  }
+  if (['close', 'minimize', 'keep-open'].includes(value.launchBehavior)) result.launchBehavior = value.launchBehavior;
   if (['home', 'news'].includes(value.startPage)) result.startPage = value.startPage;
-  for (const key of ['closeOnLaunch', 'rememberClient', 'reducedMotion', 'sound']) {
+  for (const key of ['addonCleanupDismissed', 'autoLaunchAfterUpdate', 'rememberClient', 'hdPatches', 'wineCompatibility', 'autoLoginGame', 'graphicsCompatibility', 'disableGraphicsEnhancements', 'reducedMotion', 'sound']) {
     if (typeof value[key] === 'boolean') result[key] = value[key];
   }
+  if (typeof value.downloadLimitMBps === 'number' && Number.isFinite(value.downloadLimitMBps) && (value.downloadLimitMBps === 0 || value.downloadLimitMBps >= 0.1 && value.downloadLimitMBps <= 10000)) result.downloadLimitMBps = Math.round(value.downloadLimitMBps * 10) / 10;
   if (typeof value.installPath === 'string' && path.isAbsolute(value.installPath)) result.installPath = path.normalize(value.installPath);
   return result;
 }

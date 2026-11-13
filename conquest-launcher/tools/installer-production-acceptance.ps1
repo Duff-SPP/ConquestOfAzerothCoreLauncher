@@ -1,3 +1,4 @@
+# Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 param(
   [string]$OldInstaller = "$PSScriptRoot\..\dist\ConquestOfAzerothSetup-0.6.1.exe",
   [string]$NewInstaller = "$PSScriptRoot\..\dist\ConquestOfAzerothSetup-0.6.8.exe"

@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 using Conquest.Launcher.Backend.Models;
 using MySqlConnector;
 

@@ -52,6 +52,8 @@ test('picker can replace an invalid saved path and never saves a rejected destin
   let selection = 'D:\\Games\\Project Descension'; let rejectDestination = false;
   const context = { path: path.win32, process: { env: {} }, window: {}, config: { clientExecutable: 'Ascension.exe' }, settings: { installPath: 'C:\\Launcher' },
     app: { getPath: key => key === 'exe' ? 'C:\\Launcher\\launcher.exe' : 'C:\\Users\\Player' },
+    nativeText: text => text,
+    requireGameClosed: async directory => assert.equal(directory, selection),
     requireIdleClient: async validatePath => assert.equal(validatePath, false),
     dialog: { showOpenDialog: async () => ({ canceled: false, filePaths: [selection] }) },
     writableClient: directory => assert.equal(directory, selection),
@@ -64,4 +66,13 @@ test('picker can replace an invalid saved path and never saves a rejected destin
   const saved = selection; selection = 'C:\\Protected'; rejectDestination = true;
   await assert.rejects(context.chooseClientFolder(), /unwritable/);
   assert.equal(context.settings.installPath, saved);
+});
+
+test('folder layout permits siblings and dedicated child clients while protecting launcher files', async () => {
+  const source = await fs.readFile(path.join(__dirname, '../src/main.cjs'), 'utf8');
+  const code = source.slice(source.indexOf('function writableClient('), source.indexOf("app.setName("));
+  const context = vm.createContext({ path: path.win32, app: { isPackaged: true, getPath: () => 'C:\\Games\\Launcher\\Conquest.exe' } });
+  vm.runInContext(code, context);
+  for (const folder of ['C:\\Games\\CoA', 'C:\\Games\\Launcher\\Client', 'C:\\Games\\Launcher\\Games\\CoA', 'C:\\Games\\Launcher-old']) assert.doesNotThrow(() => context.writableClient(folder));
+  for (const folder of ['C:\\', 'C:\\Games', 'C:\\Games\\Launcher', 'C:\\Games\\Launcher\\resources\\Client', 'C:\\Games\\Launcher\\LOCALES', 'C:\\Games\\Launcher\\.coa-launcher']) assert.throws(() => context.writableClient(folder), /dedicated/);
 });

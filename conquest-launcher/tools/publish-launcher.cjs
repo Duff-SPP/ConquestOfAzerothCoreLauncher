@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 const fs = require('node:fs/promises');
 const { createReadStream } = require('node:fs');
 const path = require('node:path');
@@ -23,21 +24,24 @@ async function publishLauncher(source, output, progress = console.log) {
       const input = path.join(source, name); const destination = path.join(folder, name); const temp = destination + '.' + randomUUID() + '.tmp';
       try {
         await fs.copyFile(input, temp);
+    await fs.chmod(temp, 0o644);
         const expected = name.endsWith('.blockmap') ? release.blockmapSha512 : release.sha512;
         if (await sha512(temp) !== expected || (name === release.file && (await fs.stat(temp)).size !== release.size)) throw new Error(`Release verification failed: ${name}`);
         try { await fs.link(temp, destination); } catch (error) {
           if (error.code !== 'EEXIST') throw error;
           if (await sha512(destination) !== expected) throw new Error('This version was already published with different content. Increase the launcher version and rebuild.');
         }
+        await fs.chmod(destination, 0o644);
       } finally { await fs.unlink(temp).catch(() => {}); }
     }
     const metadata = `version: ${release.version}\nfiles:\n  - url: ${release.file}\n    sha512: ${release.sha512}\n    size: ${release.size}\npath: ${release.file}\nsha512: ${release.sha512}\nreleaseDate: '${new Date().toISOString()}'\n`;
     const temp = path.join(folder, 'latest.' + randomUUID() + '.tmp');
-    await fs.writeFile(temp, metadata); await fs.rename(temp, path.join(folder, 'latest.yml'));
+    await fs.writeFile(temp, metadata, { mode: 0o644 }); await fs.chmod(temp, 0o644); await fs.rename(temp, path.join(folder, 'latest.yml'));
     const stableTemp = path.join(folder, 'installer.' + randomUUID() + '.tmp');
     try {
       await fs.link(path.join(folder, release.file), stableTemp);
-      await fs.rename(stableTemp, path.join(folder, 'ConquestOfAzerothSetup.exe'));
+      await fs.chmod(stableTemp, 0o644);
+  await fs.rename(stableTemp, path.join(folder, 'ConquestOfAzerothSetup.exe'));
     } finally { await fs.unlink(stableTemp).catch(() => {}); }
     progress(`Launcher ${release.version} published. Existing launchers can now download it.`);
   } finally { await lock.close(); await fs.unlink(lockFile); }

@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 namespace Conquest.Launcher.Backend.Configuration;
 
 public sealed class DiscordOAuthOptions

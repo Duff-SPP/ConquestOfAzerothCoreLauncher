@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const assert = require('node:assert/strict');
@@ -6,6 +7,8 @@ const { createHash } = require('node:crypto');
 const { NtExecutable, NtExecutableResource } = require('resedit');
 const { getCurrentFuseWire, FuseV1Options } = require('@electron/fuses');
 const { bundleNames } = require('./production-bundles.cjs');
+const builderData = 'public/builder/data/coa-data.js';
+const expectedScripts = [...bundleNames, builderData];
 
 const expectedFuses = {
   RunAsNode: false, EnableNodeOptionsEnvironmentVariable: false,
@@ -25,10 +28,10 @@ async function inspect(appOutDir) {
     if (!name.startsWith('node_modules/')) assert.doesNotMatch(name, /(^|\/)(src|test|tools|reference)\//i, `Source leak: ${name}`);
   }
   const firstPartyScripts = files.filter(name => !name.startsWith('node_modules/') && /\.(cjs|mjs|js)$/.test(name)).sort();
-  assert.deepEqual(firstPartyScripts, [...bundleNames].sort());
+  assert.deepEqual(firstPartyScripts, [...expectedScripts].sort());
   const metadata = JSON.parse(extractFile('package.json'));
   assert.equal(metadata.main, 'runtime/a.cjs');
-  for (const name of bundleNames) {
+  for (const name of expectedScripts) {
     const contents = extractFile(name).toString('utf8');
     assert.doesNotMatch(contents, /sourceMappingURL|sourcesContent|src\/client-updater\.cjs|class ClientUpdater|function submitBugReport/);
     const stat = statFile(name);
@@ -37,7 +40,7 @@ async function inspect(appOutDir) {
     assert.equal(stat.integrity.hash, createHash('sha256').update(contents).digest('hex'));
   }
   const html = extractFile('public/index.html').toString('utf8');
-  assert.deepEqual([...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match => match[1]), ['c.js']);
+  assert.deepEqual([...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match => match[1]), ['builder/data/coa-data.js', 'c.js']);
   const fuses = await getCurrentFuseWire(path.join(appOutDir, 'ConquestOfAzeroth.exe'));
   for (const [name, enabled] of Object.entries(expectedFuses)) assert.equal(fuses[FuseV1Options[name]], enabled ? 49 : 48, `Incorrect Electron fuse: ${name}`);
   const executable = NtExecutable.from(await fs.readFile(path.join(appOutDir, 'ConquestOfAzeroth.exe')));
@@ -47,7 +50,7 @@ async function inspect(appOutDir) {
   assert.equal(integrity?.alg, 'SHA256');
   assert.equal(integrity.value, createHash('sha256').update(asar.getRawHeader(archive).headerString).digest('hex'));
   // Make sure the archive is the same bytes produced by this build, not stale output.
-  for (const name of bundleNames) assert.deepEqual(extractFile(name), await fs.readFile(path.resolve(__dirname, '../.production', name)));
+  for (const name of expectedScripts) assert.deepEqual(extractFile(name), await fs.readFile(path.resolve(__dirname, '../.production', name)));
   return { version: metadata.version, firstPartyScripts, fileCount: files.length, sourceMaps: 0, embeddedIntegrity: 'verified', fuses: expectedFuses };
 }
 

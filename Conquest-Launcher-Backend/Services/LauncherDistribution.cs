@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 using System.Text.RegularExpressions;
 using Microsoft.Net.Http.Headers;
 
@@ -12,6 +13,15 @@ public static partial class LauncherDistribution
 
         IResult Serve(HttpContext context, string relative, string contentType, string? hash = null)
         {
+            if (relative.StartsWith("client/", StringComparison.Ordinal))
+            {
+                var required = app.Configuration["Launcher:RequiredClientVersion"] ?? "0.8.1";
+                var supplied = context.Request.Headers["X-CoA-Launcher-Version"].ToString();
+                if (!Regex.IsMatch(required, @"^\d+\.\d+\.\d+$", RegexOptions.CultureInvariant))
+                    return Results.Json(new { message = "Client download policy is not configured correctly." }, statusCode: 503);
+                if (!string.Equals(supplied, required, StringComparison.Ordinal))
+                    return Results.Json(new { requiredLauncherVersion = required, message = $"Update your launcher to version {required} to download, install or repair the client." }, statusCode: 426);
+            }
             if (string.IsNullOrWhiteSpace(root) || !Path.IsPathFullyQualified(root))
                 return Results.Json(new { message = "Launcher downloads have not been configured." }, statusCode: 503);
             var fullPath = Path.GetFullPath(Path.Combine(root, relative));
@@ -22,7 +32,7 @@ public static partial class LauncherDistribution
                 if (item.Exists && (item.Attributes & FileAttributes.ReparsePoint) != 0)
                     return Results.NotFound();
             if (!File.Exists(fullPath)) return Results.NotFound(new { message = "No release has been published yet." });
-            context.Response.Headers.CacheControl = hash is null ? "no-store" : "public,max-age=31536000,immutable";
+            context.Response.Headers.CacheControl = relative.StartsWith("client/", StringComparison.Ordinal) || hash is null ? "no-store" : "public,max-age=31536000,immutable";
             return Results.File(fullPath, contentType, enableRangeProcessing: true,
                 entityTag: hash is null ? null : new EntityTagHeaderValue('"' + hash + '"'));
         }

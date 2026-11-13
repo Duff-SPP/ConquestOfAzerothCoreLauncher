@@ -24,7 +24,7 @@ test('launches Ascension directly as an independent process', async () => {
       assert.equal(options.shell, false);
       assert.equal(options.detached, true);
       assert.equal(options.stdio, 'ignore');
-      assert.equal(options.windowsHide, true);
+      assert.equal(options.windowsHide, false);
       process.nextTick(() => started.emit('spawn'));
       return started;
     },
@@ -49,6 +49,24 @@ test('reports a direct spawn failure without invoking a shell helper', async () 
   await assert.rejects(pending, /Access denied/);
 });
 
+test('HD disabled passes two literal arguments; enabled preserves the normal launch', async () => {
+  for (const hdPatches of [false, true]) {
+    const started = child();
+    const pending = launchGame('C:\\Game\\Ascension.exe', {
+      hdPatches,
+      spawnProcess(file, args, options) {
+        assert.equal(file, 'C:\\Game\\Ascension.exe');
+        assert.deepEqual(args, hdPatches ? [] : ['-hd', '0']);
+        assert.equal(options.shell, false);
+        process.nextTick(() => started.emit('spawn'));
+        return started;
+      },
+      onLaunched() {}
+    });
+    assert.equal(await pending, 4321);
+  }
+});
+
 test('rejects invalid executable paths and invalid process ids', async () => {
   assert.throws(() => launchGame('Ascension.exe'), /valid absolute game executable path/);
   assert.throws(() => launchGame('C:\\Game\\Ascension.txt'), /valid absolute game executable path/);
@@ -63,4 +81,16 @@ test('rejects invalid executable paths and invalid process ids', async () => {
   });
   await assert.rejects(pending, /no game process/i);
   assert.equal(started.unrefCalls, 0);
+});
+
+test('launcher handoff obeys close, minimize and keep-open preferences', () => {
+  const { applyLauncherLaunchBehavior } = require('../src/game-launch.cjs');
+  let closed=0,minimized=0,scheduled=0;
+  const actions={quit:()=>closed++,minimize:()=>minimized++,schedule:(action,ms)=>{assert.equal(ms,250);scheduled++;action();}};
+  applyLauncherLaunchBehavior('keep-open',actions);assert.equal(closed,0);assert.equal(minimized,0);
+  applyLauncherLaunchBehavior('minimize',actions);assert.equal(minimized,1);assert.equal(closed,0);
+  applyLauncherLaunchBehavior('close',actions);assert.equal(closed,1);assert.equal(scheduled,1);
+  const {sanitize}=require('../src/settings.cjs');
+  assert.equal(sanitize({launchBehavior:'invalid'}).launchBehavior,'close');
+  assert.equal(sanitize({launchBehavior:'keep-open'}).launchBehavior,'keep-open');
 });

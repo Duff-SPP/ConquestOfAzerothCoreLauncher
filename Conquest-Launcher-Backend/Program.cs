@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 using System.Net;
 using System.Security.Claims;
 using System.Threading.RateLimiting;
@@ -11,6 +12,8 @@ using Microsoft.AspNetCore.HttpOverrides;
 using MySqlConnector;
 
 var builder = WebApplication.CreateBuilder(args);
+// Separate operator-owned policy survives application updates and can be changed without SQL.
+builder.Configuration.AddJsonFile("/etc/coa-launcher-backend/download-policy.json", optional: true, reloadOnChange: true);
 // Private local settings are never included in published output. Env/CLI take precedence.
 if (builder.Environment.IsDevelopment())
     builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true).AddEnvironmentVariables().AddCommandLine(args);
@@ -120,7 +123,7 @@ app.Use(async (context, next) =>
 });
 app.UseDefaultFiles(); app.UseStaticFiles(); app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization();
 app.MapLauncherDistribution();
-app.MapGet("/health", () => Results.Ok(new { service = "conquest-launcher-backend", version = "0.6.0", status = "ok" }));
+app.MapGet("/health", () => Results.Ok(new { service = "conquest-launcher-backend", version = "0.8.1", status = "ok" }));
 app.MapGet("/api/site-config", (TurnstileService turnstile) => Results.Ok(new
 {
     previewMode = false, registrationEnabled = registrations, passwordResetEnabled = portal.PasswordResetEnabled,

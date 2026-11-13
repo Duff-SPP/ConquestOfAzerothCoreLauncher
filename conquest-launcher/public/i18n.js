@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 'use strict';
 // English source text is the fallback. Only explicitly authored UI strings are translated.
 const launcherI18n = (() => {

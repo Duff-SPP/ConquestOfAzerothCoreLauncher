@@ -133,3 +133,21 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+Newest Conquest-Launcher.zip
+
+# Local publication/development state (not project source)
+/PROJECT_CONTEXT.md
+/AGENTS.md
+/docs/superpowers/
+/publication-review/
+/Release-Output/
+/CoA-Builder-Local-v0.1/
+/ChatGPT TailGate Bridge/
+/conquest-launcher/.test-tmp/
+/conquest-launcher/manager-logs/
+/conquest-launcher/download-078-*.txt
+/conquest-launcher/*-check*.txt
+/conquest-launcher/*-results.txt
+/conquest-launcher/*-verification.md
+/conquest-launcher/downloads-settings-preview.png
+/conquest-launcher/public/licenses/

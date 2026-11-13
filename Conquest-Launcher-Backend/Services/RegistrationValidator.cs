@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 using System.Net.Mail;
 using Conquest.Launcher.Backend.Configuration;
 using Conquest.Launcher.Backend.Models;
@@ -21,7 +22,7 @@ public sealed class RegistrationValidator(IOptions<RegistrationOptions> options)
             return RegistrationResult.Invalid("Account creation failed.");
 
         if (!request.AcceptTestWarning)
-            return RegistrationResult.Invalid("You must confirm that you understand this is a public test realm.");
+            return RegistrationResult.Invalid("You must confirm that you understand this account is for the live and PTR realms.");
 
         if (username.Length < _options.UsernameMinLength || username.Length > _options.UsernameMaxLength)
             return RegistrationResult.Invalid($"Account name must be {_options.UsernameMinLength}-{_options.UsernameMaxLength} characters.");

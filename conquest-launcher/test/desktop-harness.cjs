@@ -1,28 +1,17 @@
 // Isolated desktop smoke fixture. Not included in the player installer.
-const { app } = require('electron');
+const { app, net } = require('electron');
 require('electron').dialog.showErrorBox = (title, message) => console.error(`${title}: ${message}`);
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { createHash } = require('node:crypto');
 const root = process.env.COA_TEST_ROOT;
 if (!root) throw new Error('COA_TEST_ROOT is required.');
-// This fixture only writes fake client bytes. Do not let an unrelated real game
-// process interfere, and never launch/stop the user's running game during tests.
-require('../src/game-safety.cjs').requireGameClosed = async () => {};
+// Process checks compare exact executable paths, so real clients in other folders do not interfere.
 if (process.env.COA_PRODUCTION_TEST === '1') {
   // Run the exact production bundles with isolated services. These mocks are
   // test-only and are never packaged. No user's game is launched or stopped.
   Object.defineProperty(app, 'isPackaged', { value: true });
   Object.defineProperty(process, 'resourcesPath', { value: path.resolve(__dirname, '../src/assets') });
-  const childProcess = require('node:child_process'), originalExec = childProcess.execFile;
-  childProcess.execFile = function (file, ...args) {
-    if (file === 'tasklist.exe') { args.at(-1)(null, '', ''); return; }
-    return originalExec.call(this, file, ...args);
-  };
-  childProcess.execFile[require('node:util').promisify.custom] = async (file, ...args) => {
-    if (file === 'tasklist.exe') return { stdout: '', stderr: '' };
-    return require('node:util').promisify(originalExec)(file, ...args);
-  };
   const updater = require('electron-updater').autoUpdater;
   updater.checkForUpdates = async () => null;
 }
@@ -30,8 +19,11 @@ app.setPath('userData', path.join(root, 'profile'));
 const payloads = { 'Ascension.exe': Buffer.from('test fixture executable — never launched'), 'Data/enUS/locale-enUS.MPQ': Buffer.from('test locale archive') };
 const files = Object.entries(payloads).map(([name, data]) => ({ path: name, size: data.length, sha256: createHash('sha256').update(data).digest('hex') }));
 let signedIn = false;
-global.fetch = async (url, options = {}) => {
-  const target = new URL(url);
+const originalFetch = net.fetch.bind(net);
+net.fetch = async (url, options = {}) => {
+  const target = new URL(url instanceof Request ? url.url : url);
+  // The launcher protocol still needs Chromium to read its local UI files.
+  if (target.protocol === 'file:') return originalFetch(url, options);
   if (target.pathname.endsWith('/latest.json')) return Response.json({ schema: 1, version: 'smoke-1', files });
   if (target.pathname.includes('/objects/')) {
     const file = files.find(item => target.pathname.endsWith(item.sha256));

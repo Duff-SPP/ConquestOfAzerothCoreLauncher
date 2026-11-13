@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 'use strict';
 const content = document.getElementById('content');
 const message = document.getElementById('message');
@@ -17,7 +18,7 @@ async function show() {
   const route = location.hash.split('?')[0];
   if (route === '#register') {
     if (!configuration.registrationEnabled) { content.textContent = 'Account creation has not been enabled by the server owner yet.'; return; }
-    content.innerHTML = `<h2>Create your account</h2><form data-route="register">${input('username', 'Account name', 'text', 'username')}${input('email', 'Email', 'email', 'email')}${input('password', 'Password (6–16 printable characters)', 'password', 'new-password')}${input('confirmPassword', 'Confirm password', 'password', 'new-password')}<label><input name="acceptTestWarning" type="checkbox" required> I understand this is a public test realm.</label><div id="captcha"></div><button>Create account</button></form>`;
+    content.innerHTML = `<h2>Create your account</h2><form data-route="register">${input('username', 'Account name', 'text', 'username')}${input('email', 'Email', 'email', 'email')}${input('password', 'Password (6–16 printable characters)', 'password', 'new-password')}${input('confirmPassword', 'Confirm password', 'password', 'new-password')}<label><input name="acceptTestWarning" type="checkbox" required> I understand this account is for the Conquest of AzerothCore live and PTR realms.</label><div id="captcha"></div><button>Create account</button></form>`;
     if (configuration.turnstileEnabled) {
       const mount = () => { if (!document.getElementById('captcha')) return; if (!window.turnstile) { captchaTimer = setTimeout(mount, 200); return; } captchaWidget = window.turnstile.render('#captcha', { sitekey: configuration.turnstileSiteKey, action: configuration.turnstileAction }); };
       mount();

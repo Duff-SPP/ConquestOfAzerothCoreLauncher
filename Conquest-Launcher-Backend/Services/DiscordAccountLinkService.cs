@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
@@ -197,12 +198,15 @@ public sealed class DiscordAccountLinkService
     public async Task<bool> UnlinkAsync(uint accountId, CancellationToken cancellationToken)
     {
         if (!Enabled) return false;
-        foreach (var pair in _pending)
-            if (pair.Value.AccountId == accountId) _pending.TryRemove(pair.Key, out _);
-
         await using var connection = new MySqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        await using (var cancelPending = new MySqlCommand("DELETE FROM coa_discord_pending WHERE account_id=@accountId", connection, transaction))
+        {
+            cancelPending.Parameters.AddWithValue("@accountId", accountId);
+            await cancelPending.ExecuteNonQueryAsync(cancellationToken);
+        }
 
         StoredLink? link = null;
         await using (var select = new MySqlCommand("SELECT discord_user_id,discord_username,discord_global_name FROM coa_discord_link WHERE account_id=@accountId FOR UPDATE", connection, transaction))

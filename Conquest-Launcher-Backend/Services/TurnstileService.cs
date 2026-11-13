@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Conquest.Launcher.Backend.Configuration;

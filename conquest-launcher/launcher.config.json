@@ -13,11 +13,13 @@
     "register": "https://launcher-api.coa-development.org/#register",
     "store": "https://coa-development.org/#store",
     "wiki": "",
+    "armory": "https://coa-development.org/armory/",
     "database": "https://ascension-db.ascension-archive.workers.dev/",
     "discord": "https://discord.gg/UV4engmU96",
     "support": "",
     "trailer": "",
-    "bugtracker": "https://github.com/jealous-sound/azerothcore-wotlk-coa/issues"
+    "bugtracker": "https://github.com/jealous-sound/azerothcore-wotlk-coa/issues",
+    "source": "https://github.com/Duff-SPP/ConquestOfAzerothCoreLauncher"
   },
   "databaseEmbedUrl": "https://ascension-db.ascension-archive.workers.dev/",
   "bugtracker": {

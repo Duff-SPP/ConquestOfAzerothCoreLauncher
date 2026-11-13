@@ -36,6 +36,49 @@ async function fixture(t) {
   return { root, master, output, client, requests, updater };
 }
 
+test('throttled downloads pause twice and resume the same partial with a fresh signal', async t => {
+  const f = await fixture(t);
+  const data = Buffer.alloc(256 * 1024, 63);
+  await fs.writeFile(path.join(f.master, 'Ascension.exe'), data);
+  const release = await publishClient(f.master, f.output, 'limited-resume', () => {});
+  const file = release.files.find(item => item.path === 'Ascension.exe');
+  let rate = 128 * 1024;
+  f.updater.throttle = new (require('../src/download-throttle.cjs').DownloadThrottle)(() => rate);
+  const part = path.join(f.client, '.coa-launcher/downloads', file.sha256 + '.part');
+  let previousSize = 0;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    f.updater.notify = status => {
+      if (status.phase === 'downloading' && status.bytes > previousSize) f.updater.cancel();
+    };
+    await assert.rejects(f.updater.update(f.client), { code: 'CLIENT_PAUSED' });
+    assert.equal(f.updater.status.phase, 'paused');
+    assert.equal(f.updater.busy, false);
+    const size = (await fs.stat(part)).size;
+    assert.ok(size > previousSize && size < data.length);
+    if (attempt) assert.equal(f.requests.at(-1).range, `bytes=${previousSize}-`);
+    previousSize = size;
+  }
+  rate = 0;
+  f.updater.notify = () => {};
+  await f.updater.update(f.client);
+  assert.equal(f.updater.status.phase, 'ready');
+  assert.equal(f.requests.findLast(request => request.path.endsWith(file.sha256)).range, `bytes=${previousSize}-`);
+  assert.deepEqual(await fs.readFile(path.join(f.client, 'Ascension.exe')), data);
+  await assert.rejects(fs.stat(part), { code: 'ENOENT' });
+});
+
+test('network AbortError caused by Pause is normalized to a resumable pause', async () => {
+  const updater = new ClientUpdater('https://launcher.example/client/latest.json');
+  await assert.rejects(updater.exclusive(async signal => {
+    updater.emit('downloading', 'Downloading');
+    updater.cancel();
+    assert.equal(signal.aborted, true);
+    throw new DOMException('The operation was aborted.', 'AbortError');
+  }), { code: 'CLIENT_PAUSED', message: 'Download paused. You can resume it from the launcher.' });
+  assert.equal(updater.status.phase, 'paused');
+  await updater.exclusive(async signal => assert.equal(signal.aborted, false));
+});
+
 test('minimum launcher version is opt-in and blocks incompatible downloads and cached fallback', async t => {
   const f = await fixture(t);
   const release = await publishClient(f.master, f.output, 'compatibility', () => {}, { minimumLauncherVersion: '0.6.7' });
@@ -87,6 +130,55 @@ test('install, patch, repair, remove obsolete managed files and preserve player-
   assert.equal(await fs.readFile(path.join(f.client, 'WTF/Config.wtf'), 'utf8'), 'player settings');
   assert.equal(await fs.readFile(path.join(f.client, 'Data/patch-personal.MPQ'), 'utf8'), 'player file');
   for (const name of personal) assert.equal(await fs.readFile(path.join(f.client, name), 'utf8'), 'player bytes');
+  assert.equal((await f.updater.check(f.client)).needsUpdate, false);
+});
+
+test('normal updates preserve customized DLLs and patch toggles; Repair restores managed files', async t => {
+  const f = await fixture(t);
+  await fs.writeFile(path.join(f.master, 'd3d9.dll'), 'master dll');
+  await fs.writeFile(path.join(f.master, 'Data/patch-WB1.MPQ.DISABLED'), 'optional patch');
+  await publishClient(f.master, f.output, 'custom-1', () => {});
+  await f.updater.update(f.client);
+  await fs.writeFile(path.join(f.client, 'd3d9.dll'), 'player reshade');
+  await fs.writeFile(path.join(f.client, 'dxgi.dll'), 'extra player dll');
+  await fs.rename(path.join(f.client, 'Data/patch-WB1.MPQ.DISABLED'), path.join(f.client, 'Data/patch-WB1.MPQ'));
+  await fs.rename(path.join(f.client, 'Data/patch-A.MPQ'), path.join(f.client, 'Data/patch-A.MPQ.DISABLED'));
+  assert.equal((await f.updater.check(f.client)).needsUpdate, false);
+  await fs.writeFile(path.join(f.master, 'Ascension.exe'), 'new executable');
+  await fs.writeFile(path.join(f.master, 'd3d9.dll'), 'new master dll');
+  await fs.writeFile(path.join(f.master, 'Data/patch-A.MPQ'), 'new patch');
+  await publishClient(f.master, f.output, 'custom-2', () => {});
+  f.requests.length = 0;
+  await f.updater.update(f.client);
+  assert.equal(f.requests.length, 1, 'only the executable downloads');
+  assert.equal(await fs.readFile(path.join(f.client, 'd3d9.dll'), 'utf8'), 'player reshade');
+  await assert.rejects(fs.stat(path.join(f.client, 'Data/patch-WB1.MPQ.DISABLED')), { code: 'ENOENT' });
+  await assert.rejects(fs.stat(path.join(f.client, 'Data/patch-A.MPQ')), { code: 'ENOENT' });
+  assert.equal((await f.updater.check(f.client)).needsUpdate, false);
+  const fetch = f.updater.fetch;
+  f.updater.fetch = async () => { throw new TypeError('offline'); };
+  assert.equal((await f.updater.check(f.client, false, true)).needsUpdate, false);
+  f.updater.fetch = fetch;
+  assert.equal((await f.updater.check(f.client, true)).needsUpdate, true);
+  await f.updater.update(f.client, true);
+  assert.equal(await fs.readFile(path.join(f.client, 'd3d9.dll'), 'utf8'), 'new master dll');
+  assert.equal(await fs.readFile(path.join(f.client, 'dxgi.dll'), 'utf8'), 'extra player dll');
+  assert.equal(await fs.readFile(path.join(f.client, 'Data/patch-A.MPQ'), 'utf8'), 'new patch');
+});
+
+test('normal updates keep obsolete managed DLLs and patches whose published toggle changes', async t => {
+  const f = await fixture(t);
+  await fs.writeFile(path.join(f.master, 'd3d9.dll'), 'dll');
+  await publishClient(f.master, f.output, 'toggle-1', () => {});
+  await f.updater.update(f.client);
+  await fs.unlink(path.join(f.master, 'd3d9.dll'));
+  await fs.rename(path.join(f.master, 'Data/patch-A.MPQ'), path.join(f.master, 'Data/patch-A.MPQ.DISABLED'));
+  await publishClient(f.master, f.output, 'toggle-2', () => {});
+  f.requests.length = 0;
+  await f.updater.update(f.client);
+  assert.equal(f.requests.length, 0);
+  assert.equal(await fs.readFile(path.join(f.client, 'd3d9.dll'), 'utf8'), 'dll');
+  assert.equal(await fs.readFile(path.join(f.client, 'Data/patch-A.MPQ'), 'utf8'), 'original patch');
   assert.equal((await f.updater.check(f.client)).needsUpdate, false);
 });
 
@@ -155,7 +247,7 @@ test('publishing keeps old releases immutable and fails if the master changes mi
 
 test('realm configuration targets locale files and keeps a backup', async t => {
   const f = await fixture(t); await configureRealm(f.master, 'logon.coa-development.org');
-  assert.equal(await fs.readFile(path.join(f.master, 'Data/enUS/realmlist.wtf'), 'utf8'), 'set realmlist logon.coa-development.org\r\n');
+  assert.equal(await fs.readFile(path.join(f.master, 'Data/enUS/realmlist.wtf'), 'utf8'), 'set realmlist logon.coa-development.org');
   assert.equal(await fs.readFile(path.join(f.master, '.coa-launcher/realmlist-backups/Data/enUS/realmlist.wtf'), 'utf8'), 'set realmlist old.invalid');
 });
 
@@ -189,8 +281,9 @@ test('space estimate credits cached downloads and counts duplicate objects once'
   const file = { path: 'Ascension.exe', size: 10, sha256: 'a'.repeat(64) };
   const part = path.join(f.client, '.coa-launcher/downloads', file.sha256 + '.part');
   await fs.mkdir(path.dirname(part), { recursive: true }); await fs.writeFile(part, '123456789');
-  assert.equal(await f.updater.requiredSpace(f.client, { changes: [file], bytes: 10 }), 11 + 256 * 1024 ** 2);
-  assert.equal(await f.updater.requiredSpace(f.client, { changes: [file, { ...file, path: 'copy.exe' }], bytes: 20 }), 21 + 256 * 1024 ** 2);
+  assert.equal(await f.updater.requiredSpace(f.client, { changes: [file], bytes: 10 }), 1 + 256 * 1024 ** 2);
+  assert.equal(await f.updater.requiredSpace(f.client, { changes: [file, { ...file, path: 'copy.exe' }], bytes: 20 }), 11 + 256 * 1024 ** 2);
+  assert.equal(await f.updater.requiredSpace(f.client, { changes: [file], bytes: 10 }, false), 11 + 256 * 1024 ** 2);
 });
 
 test('staging reports its own progress, can pause, and resumes without redownloading', async t => {
@@ -219,6 +312,22 @@ test('launch fallback verifies cached release and refuses damaged or unknown cli
   await assert.rejects(f.updater.check(f.client, false, true), /needs repair/);
   await atomicJson(path.join(f.client, '.coa-launcher/state.json'), {});
   await assert.rejects(f.updater.check(f.client, false, true), /no verified client release/);
+});
+
+test('interrupted manifest bodies allow verified fallback but oversized manifests do not', async t => {
+  const f = await fixture(t); await publishClient(f.master, f.output, 'body-failure', () => {});
+  await f.updater.update(f.client);
+  f.updater.fetch = async () => new Response(new ReadableStream({
+    start(controller) { controller.enqueue(Buffer.from('{"schema":')); },
+    pull(controller) { controller.error(new Error('Manifest connection interrupted.')); }
+  }));
+  const ready = await f.updater.check(f.client, false, true);
+  assert.equal(ready.needsUpdate, false); assert.match(ready.warnings[0], /unavailable/);
+  await assert.rejects(f.updater.check(f.client), /Manifest connection interrupted/);
+  await fs.writeFile(path.join(f.client, 'Ascension.exe'), 'broken');
+  await assert.rejects(f.updater.check(f.client, false, true), /needs repair/);
+  f.updater.fetch = async () => new Response(Buffer.alloc(32 * 1024 * 1024 + 1));
+  await assert.rejects(f.updater.check(f.client, false, true), /manifest is too large/);
 });
 
 test('launch fallback does not bypass invalid manifests or explicit server rejections', async t => {
@@ -426,4 +535,132 @@ test('invalid resume ranges never reach application and an interrupted commit re
   assert.equal(await fs.readFile(path.join(f.client,'Ascension.exe'),'utf8'),'test executable');
   f.updater.notify=()=>{}; await f.updater.update(f.client);
   assert.equal(await hashFile(path.join(f.client,'Ascension.exe')),file.sha256);
+});
+
+
+test('disabled DXVK survives updates and compatibility Repair; turning it off restores strict Repair', async t => {
+  const f = await fixture(t);
+  await fs.writeFile(path.join(f.master, 'd3d9.dll'), 'published renderer');
+  await fs.writeFile(path.join(f.master, 'dxgi.dll'), 'published enhancement');
+  await publishClient(f.master, f.output, 'graphics-1', () => {});
+  await f.updater.update(f.client);
+  const { configureClientGraphics } = require('../src/client-graphics.cjs');
+  await configureClientGraphics(f.client, true, true);
+  f.updater.graphicsCompatibility = () => true;
+  assert.equal((await f.updater.check(f.client)).needsUpdate, false);
+  await fs.writeFile(path.join(f.master, 'd3d9.dll'), 'new renderer');
+  await fs.writeFile(path.join(f.master, 'dxgi.dll'), 'new enhancement');
+  await fs.writeFile(path.join(f.master, 'Data/patch-A.MPQ'), 'updated patch');
+  await publishClient(f.master, f.output, 'graphics-2', () => {});
+  await f.updater.update(f.client);
+  await f.updater.update(f.client, true);
+  await assert.rejects(fs.stat(path.join(f.client, 'd3d9.dll')), { code: 'ENOENT' });
+  assert.equal(await fs.readFile(path.join(f.client, 'd3d9.dll.DISABLED'), 'utf8'), 'published renderer');
+  await assert.rejects(fs.stat(path.join(f.client, 'dxgi.dll')), { code: 'ENOENT' });
+  assert.equal(await fs.readFile(path.join(f.client, 'dxgi.dll.DISABLED'), 'utf8'), 'published enhancement');
+  await configureClientGraphics(f.client, false);
+  f.updater.graphicsCompatibility = () => false;
+  await f.updater.update(f.client, true);
+  assert.equal(await fs.readFile(path.join(f.client, 'd3d9.dll'), 'utf8'), 'new renderer');
+  assert.equal(await fs.readFile(path.join(f.client, 'dxgi.dll'), 'utf8'), 'new enhancement');
+});
+
+
+test('normal updates replace outdated or modified Extensions.dll while preserving graphics customizations', async t => {
+  const f = await fixture(t);
+  await fs.writeFile(path.join(f.master, 'Extensions.dll'), 'extension version 1');
+  await fs.writeFile(path.join(f.master, 'd3d9.dll'), 'published graphics');
+  await publishClient(f.master, f.output, 'extensions-1', () => {});
+  await f.updater.update(f.client);
+  await fs.writeFile(path.join(f.client, 'd3d9.dll'), 'player graphics');
+  await fs.writeFile(path.join(f.master, 'Extensions.dll'), 'extension version 2');
+  await publishClient(f.master, f.output, 'extensions-2', () => {});
+  assert.equal((await f.updater.check(f.client)).needsUpdate, true);
+  await f.updater.update(f.client);
+  assert.equal(await fs.readFile(path.join(f.client, 'Extensions.dll'), 'utf8'), 'extension version 2');
+  await fs.writeFile(path.join(f.client, 'Extensions.dll'), 'modified extension');
+  const check = await f.updater.check(f.client);
+  assert.equal(check.needsUpdate, true);
+  await f.updater.update(f.client);
+  assert.equal(await fs.readFile(path.join(f.client, 'Extensions.dll'), 'utf8'), 'extension version 2');
+  assert.equal(await fs.readFile(path.join(f.client, 'd3d9.dll'), 'utf8'), 'player graphics');
+  assert.equal((await f.updater.check(f.client)).needsUpdate, false);
+  const manifest = await f.updater.manifest(new AbortController().signal);
+  const dll = manifest.files.find(file => file.path === 'Extensions.dll');
+  dll.path = 'EXTENSIONS.DLL';
+  const plan = await f.updater.plan(f.client, manifest, false, new AbortController().signal, true);
+  assert.ok(!plan.warnings.some(warning => /extensions\.dll/i.test(warning)));
+});
+
+
+test('Extensions.dll cannot trust legacy scan state for a same-size preserved DLL', async t => {
+  const f = await fixture(t);
+  await fs.writeFile(path.join(f.master, 'Extensions.dll'), 'new mandatory code');
+  const manifest = await publishClient(f.master, f.output, 'legacy-extensions-cache', () => {});
+  await f.updater.update(f.client);
+  await fs.writeFile(path.join(f.client, 'Extensions.dll'), 'old mandatory code');
+  const state = await f.updater.readState(f.client);
+  const cached = state.files.find(file => file.path === 'Extensions.dll');
+  const stat = await fs.stat(path.join(f.client, 'Extensions.dll'));
+  cached.mtimeMs = stat.mtimeMs; cached.ctimeMs = stat.ctimeMs;
+  assert.equal(cached.size, stat.size);
+  await atomicJson(path.join(f.client, '.coa-launcher/state.json'), state);
+  assert.equal((await f.updater.check(f.client)).needsUpdate, true);
+  await f.updater.update(f.client);
+  assert.equal(await fs.readFile(path.join(f.client, 'Extensions.dll'), 'utf8'), 'new mandatory code');
+});
+
+test('checks remove leftover installed-release downloads while keeping objects needed for resume', async t => {
+  const f = await fixture(t);
+  const release = await publishClient(f.master, f.output, 'cache-cleanup', () => {});
+  await f.updater.update(f.client);
+  const folder = path.join(f.client, '.coa-launcher/downloads');
+  for (const file of release.files) await fs.writeFile(path.join(folder, file.sha256 + '.part'), await fs.readFile(path.join(f.client, file.path)));
+  assert.equal((await f.updater.check(f.client)).needsUpdate, false);
+  assert.deepEqual(await fs.readdir(folder), [], 'committed release must not retain a second client in downloads');
+  const file = release.files.find(file => file.path === 'Ascension.exe');
+  await fs.unlink(path.join(f.client, file.path));
+  const partial = path.join(folder, file.sha256 + '.part');
+  await fs.writeFile(partial, 'test ');
+  assert.equal((await f.updater.check(f.client)).needsUpdate, true);
+  assert.equal(await fs.readFile(partial, 'utf8'), 'test ', 'required resumable download is kept');
+  await f.updater.update(f.client);
+  assert.deepEqual(await fs.readdir(folder), []);
+});
+
+test('shared staging reuses verified bytes and duplicate destinations remain independent', async t => {
+  const f = await fixture(t);
+  await fs.writeFile(path.join(f.master, 'same.exe'), 'test executable');
+  const release = await publishClient(f.master, f.output, 'shared-staging', () => {});
+  let calls = 0, shared = false;
+  f.updater.beforeApply = async () => {
+    if (++calls !== 3) return;
+    const file = release.files.find(file => file.path === 'Ascension.exe');
+    shared = (await fs.stat(path.join(f.client, '.coa-launcher/downloads', file.sha256 + '.part'))).nlink === 2;
+  };
+  await f.updater.update(f.client);
+  assert.equal(shared, true, 'one staged destination shares bytes with the resumable download');
+  await fs.writeFile(path.join(f.client, 'same.exe'), 'changed independently');
+  assert.equal(await fs.readFile(path.join(f.client, 'Ascension.exe'), 'utf8'), 'test executable');
+  assert.deepEqual(await fs.readdir(path.join(f.client, '.coa-launcher/downloads')), []);
+});
+
+test('drives without hard-link support retain safe copy staging', async t => {
+  const f = await fixture(t);
+  await publishClient(f.master, f.output, 'copy-staging', () => {});
+  f.updater.supportsSharedStaging = async () => false;
+  await f.updater.update(f.client);
+  assert.equal((await f.updater.check(f.client)).needsUpdate, false);
+});
+
+test('EISDIR staging probe falls back on exFAT and cleans up probe files', async t => {
+  const f = await fixture(t);
+  await publishClient(f.master, f.output, 'exfat-fallback', () => {});
+  const link = fs.link;
+  fs.link = async () => { throw Object.assign(new Error('unsupported exFAT link'), { code: 'EISDIR' }); };
+  try {
+    await f.updater.update(f.client);
+    assert.equal((await f.updater.check(f.client)).needsUpdate, false);
+    for (const name of ['staging-link-probe','staging-link-probe-linked']) await assert.rejects(fs.stat(path.join(f.client,'.coa-launcher',name)), {code:'ENOENT'});
+  } finally { fs.link = link; }
 });

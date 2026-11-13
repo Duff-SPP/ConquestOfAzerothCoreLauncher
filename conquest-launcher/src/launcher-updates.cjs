@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 function createLauncherUpdates(app, notify, canRestart) {
   let status = { phase: app.isPackaged ? 'idle' : 'development', message: app.isPackaged ? 'Ready to check launcher updates.' : 'Launcher updates are available in the installed version.' };
   const set = (phase, message, extra = {}) => { status = { phase, message, ...extra }; notify(status); };

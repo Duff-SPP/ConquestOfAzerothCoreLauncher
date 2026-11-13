@@ -1,0 +1,16 @@
+Conquest Launcher
+Copyright (C) 2026 Duff (Duff-SPP)
+
+The original launcher frontend, backend, build tools and documentation in
+this repository are licensed under the GNU General Public License,
+version 3 only (GPL-3.0-only), with the author-attribution and origin notices
+specified in ATTRIBUTION.md under GPLv3 sections 7(b) and 7(c).
+
+You may use, study, modify and redistribute the covered work under these
+terms. Redistribution of covered executables must comply with the GPL's
+corresponding-source requirements. There is no warranty.
+
+Read COPYING for the complete, unmodified GPLv3 text, and ATTRIBUTION.md for
+the applicable additional terms. Third-party dependencies and assets retain
+their respective rights; see THIRD_PARTY_NOTICES.md. This license does not
+grant rights to third-party game clients, services, accounts or trademarks.

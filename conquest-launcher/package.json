@@ -1,9 +1,9 @@
 {
   "name": "conquest-of-azerothcore-launcher",
-  "version": "0.6.9",
+  "version": "0.8.1",
   "private": true,
   "description": "Conquest of AzerothCore desktop launcher",
-  "author": "Conquest of AzerothCore",
+  "author": "Duff (Duff-SPP)",
   "main": "src/main.cjs",
   "scripts": {
     "start": "electron .",
@@ -65,7 +65,9 @@
           "public/index.html",
           "public/styles.css",
           "public/assets/**/*",
-          "!**/*.map"
+          "!**/*.map",
+          "public/builder/**/*",
+          "public/licenses/**/*"
         ]
       }
     ],
@@ -98,12 +100,22 @@
       "enableNodeCliInspectArguments": false,
       "enableEmbeddedAsarIntegrityValidation": true,
       "onlyLoadAppFromAsar": true
-    }
+    },
+    "asarUnpack": [
+      "node_modules/@koromix/koffi-win32-x64/**"
+    ]
   },
   "dependencies": {
-    "electron-updater": "6.8.9"
+    "electron-updater": "6.8.9",
+    "koffi": "3.3.3"
   },
   "engines": {
     "node": ">=22.0.0"
+  },
+  "license": "SEE LICENSE IN ../LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Duff-SPP/ConquestOfAzerothCoreLauncher.git",
+    "directory": "conquest-launcher"
   }
 }

@@ -32,6 +32,14 @@ test('installer ownership embeds exact hashes and removes unsafe legacy cleanup'
   assert.doesNotMatch(preserve, /Delete \/REBOOTOK/);
   assert.match(preserve, /CreateFileW/);
   assert.doesNotMatch(preserve, /_KillProcess|Stop-Process/);
+  const preparation = preserve.slice(preserve.indexOf('!macro coaPrepareUpgrade'), preserve.indexOf('!macro customRemoveFiles'));
+  assert.ok(preparation.indexOf('SetOutPath "$PLUGINSDIR"') < preparation.indexOf('File /oname=coa-owned.txt'),
+    'Ownership extraction must use the temporary directory, not a previous install output directory');
+  assert.match(preparation, /File \/oname=coa-owned\.txt[^\n]+\n\s*IfErrors coaPreserveFailed/);
+  assert.match(preparation, /Call coaCheckPath\s*StrCpy \$coaFailure "[^\n]*linked\/reparse path: \$coaCheck/);
+  assert.match(preparation, /Could not hash an existing launcher file: \$INSTDIR\\\$coaRelative/);
+  assert.doesNotMatch(preparation, /Could not read the embedded ownership manifest\./);
+  assert.match(preparation, /SetOutPath "\$coaPreviousOutDir"/);
   const removal = preserve.slice(preserve.indexOf('!macro customRemoveFiles'));
   const opens = [...removal.matchAll(/^\s*FileOpen \$coaHandle .*$/gm)];
   assert.equal(opens.length, 4);

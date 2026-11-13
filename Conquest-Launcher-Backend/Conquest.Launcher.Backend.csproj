@@ -14,4 +14,10 @@
     <Content Remove="deploy/**;test-output/**" />
     <Compile Remove="deploy/**;test-output/**" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="../LICENSE" Link="LICENSE" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../COPYING" Link="COPYING" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../ATTRIBUTION.md" Link="ATTRIBUTION.md" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../THIRD_PARTY_NOTICES.md" Link="THIRD_PARTY_NOTICES.md" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

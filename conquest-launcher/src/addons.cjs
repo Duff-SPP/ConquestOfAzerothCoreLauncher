@@ -1,3 +1,4 @@
+// Copyright (C) 2026 Duff (Duff-SPP). GPL-3.0-only; see LICENSE and ATTRIBUTION.md at the repository root.
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { constants } = require('node:fs');
@@ -160,17 +161,23 @@ class AddonService {
     const kind = await existsKind(this.catalogRoot);
     if (kind !== 'directory') throw new Error('Addon catalog folder is missing.');
     const entries = await fs.readdir(this.catalogRoot, { withFileTypes: true });
+    let allowedFolders = null;
+    try {
+      const index = JSON.parse(await fs.readFile(path.join(this.catalogRoot, 'catalog-index.json'), 'utf8'));
+      if (index.schema !== 1 || !Array.isArray(index.folders) || index.folders.some(name => typeof name !== 'string' || !name || /[\\/]/.test(name))) throw new Error('Invalid addon catalog index.');
+      allowedFolders = new Set(index.folders.map(name => name.toLowerCase()));
+    } catch (error) { if (error.code !== 'ENOENT') throw error; }
     const folders = new Map();
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
       const folderName = entry.name;
+      if (allowedFolders && !allowedFolders.has(folderName.toLowerCase())) continue;
       if (/^Blizzard_/i.test(folderName) && !this.mandatoryFolders.has(folderName.toLowerCase())) continue;
       const folderPath = safeChild(this.catalogRoot, folderName);
       const toc = await readToc(folderPath, folderName);
       if (!toc.tocFile && !this.assetFolders.has(folderName.toLowerCase())) continue;
       folders.set(folderName, { name: folderName, path: folderPath, ...toc });
     }
-    if (!folders.size) throw new Error('Addon catalog is empty.');
     for (const name of this.mandatoryFolders) {
       if (![...folders.keys()].some(folder => folder.toLowerCase() === name)) throw new Error(`Mandatory addon is missing or has no TOC: ${name}`);
     }
@@ -265,9 +272,20 @@ class AddonService {
       catch (error) { installed = { status: 'unreadable', installedFolders: 0, installedVersion: '', description: `Could not inspect this addon: ${error.message}` }; }
       result.push({ ...pkg, ...installed, catalog: true, managementBlocked: warnings.length > 0, managed: !!ownership.packages[pkg.id]?.length });
     }
+    const retiredFolders = new Set();
+    for (const [id, files] of Object.entries(ownership.packages)) {
+      if (catalog.byId.has(id)) continue;
+      const pkg = this.retiredPackage(id, files);
+      if (!pkg.folders.length) continue;
+      for (const folder of pkg.folders) retiredFolders.add(folder.toLowerCase());
+      let installed;
+      try { installed = await this.installedState(pkg, addonsRoot, false); }
+      catch { installed = { status: 'unreadable', installedFolders: 0, installedVersion: '' }; }
+      result.push({ ...pkg, ...installed, catalog: false, managed: true, managementBlocked: warnings.length > 0 });
+    }
     const entries = addonsRoot ? await fs.readdir(addonsRoot, { withFileTypes: true }).catch(error => { if (error.code === 'ENOENT') return []; throw error; }) : [];
     for (const entry of entries) {
-      if ((!entry.isDirectory() && !entry.isSymbolicLink()) || catalog.folderToPackage.has(entry.name.toLowerCase())) continue;
+      if ((!entry.isDirectory() && !entry.isSymbolicLink()) || catalog.folderToPackage.has(entry.name.toLowerCase()) || retiredFolders.has(entry.name.toLowerCase())) continue;
       let toc = { title: entry.name, version: '', notes: '' }, status = 'unknown';
       try {
         await safePath(addonsRoot, `${entry.name}/.probe`, true);
@@ -284,6 +302,11 @@ class AddonService {
     const pkg = catalog.byId.get(packageId);
     if (!pkg) throw new Error('Addon package was not found in the catalog.');
     return pkg;
+  }
+
+  retiredPackage(id, files) {
+    const folders = [...new Set(files.map(file => file.path.split('/')[2]).filter(Boolean))];
+    return { id, name: folders[0] || id, primaryFolder: folders[0], folders, mandatory: false, version: '', category: 'Local addons', description: 'This addon is no longer offered in the launcher catalog. Uninstall it to avoid overriding addons supplied by patch B.', dependencies: [], externalDependencies: [] };
   }
 
   dependencyOrder(catalog, rootId) {
@@ -416,10 +439,12 @@ class AddonService {
     return { id: target.id, name: target.name, preservedFiles, installedPackages: packages.map(p => p.id), installedFolders: packages.reduce((sum, p) => sum + p.folders.length, 0) };
   }
 
-  async uninstall(packageId, clientRoot) {
+  async uninstall(packageId, clientRoot, removeModified = false) {
     if (!clientRoot) throw new Error('Choose your installed client first.');
     const storage = new AddonStorage(clientRoot); await storage.recover();
-    const catalog = await this.catalog(), pkg = this.packageById(catalog, packageId);
+    const catalog = await this.catalog();
+    const previous = await storage.state();
+    const pkg = catalog.byId.get(packageId) || (previous.packages[packageId]?.length ? this.retiredPackage(packageId, previous.packages[packageId]) : this.packageById(catalog, packageId));
     if (pkg.mandatory) throw new Error('This addon is mandatory for the client and cannot be uninstalled through the launcher.');
     const provided = new Set(pkg.folders.map(f => f.toLowerCase()));
     const installed = await this.installedTocs(clientRoot), blockers = new Set();
@@ -427,16 +452,18 @@ class AddonService {
       if (!provided.has(name) && toc.dependencies.some(d => provided.has(d.toLowerCase()))) blockers.add(toc.name);
     }
     if (blockers.size) throw new Error(`${pkg.name} is required by ${[...blockers].join(', ')}. Uninstall those addons first.`);
-    const previous = await storage.state(), next = structuredClone(previous), changes = [];
+    const next = structuredClone(previous), changes = [];
     if (!previous.packages[packageId]) throw new Error('This addon is not owned by the launcher. Remove it manually if desired; its files have been preserved.');
     let preserved = 0;
+    const remaining = [];
     for (const file of previous.packages[packageId]) {
       const target = await storage.target(file.path);
       if (!await statOrNull(target)) continue;
-      if (await hashFile(target) !== file.sha256) { preserved++; continue; }
+      if (await hashFile(target) !== file.sha256 && removeModified !== true) { preserved++; remaining.push(file); continue; }
       changes.push({ path: file.path });
     }
-    delete next.packages[packageId];
+    if (remaining.length) next.packages[packageId] = remaining;
+    else delete next.packages[packageId];
     await storage.commit(changes, next, previous);
     return { id: pkg.id, name: pkg.name, removedFolders: pkg.folders.length, preservedFiles: preserved };
   }
