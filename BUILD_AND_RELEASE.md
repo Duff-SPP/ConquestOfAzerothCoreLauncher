@@ -156,4 +156,4 @@ This checks hashes, stores immutable versioned installer/blockmap, and generates
 - Uninstall the launcher: the separate client, AddOns, WTF and Screenshots remain. Never place a client inside the launcher installation directory.
 - Check backend starts, archive contents, no private configs/secrets, HTTPS feed/latest.yml/blockmap/range downloads. Test Linux service after reboot.
 
-Record the delivered archive filename, launcher/backend versions, build/test date and acceptance results with the handover. Mark unperformed checks as pending and assign live checks to the host. `P0_VALIDATION.md` records historical source checks, not certification of this delivery. Editing these guides does not rebuild existing archives or verify a deployed environment.
+Record the delivered archive filename, launcher/backend versions, build/test date and acceptance results with the handover. Mark unperformed checks as pending and assign live checks to the host. Historical source checks do not certify this delivery. Editing these guides does not rebuild existing archives or verify a deployed environment.

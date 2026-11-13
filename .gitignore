@@ -151,3 +151,12 @@ Newest Conquest-Launcher.zip
 /conquest-launcher/*-verification.md
 /conquest-launcher/downloads-settings-preview.png
 /conquest-launcher/public/licenses/
+
+# Historical investigation/QA notes stay local, not in the public source tree.
+/ISSUE_FIXES_*.md
+/P0_VALIDATION.md
+/START HERE - Installation and testing.md
+/conquest-launcher/HOTFIX-*.md
+/conquest-launcher/INTEGRATION_NOTES.md
+/conquest-launcher/QA-*.md
+/conquest-launcher/RELEASE_*_REPORT.md

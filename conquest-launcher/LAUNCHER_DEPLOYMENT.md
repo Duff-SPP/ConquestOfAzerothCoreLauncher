@@ -1,21 +1,40 @@
-# Launcher 0.6.8 deployment
+# Publishing a launcher update
 
-This is a launcher-only update for the existing dedicated Linux host. It contains the installer, blockmap, feed, release descriptor and dependency-free Node.js publishing tools. It does not update the backend, game client or player data. Node.js 22+ and tar are required. No npm installation is needed.
+This is a launcher-only handoff for an existing Linux host. It contains the installer, blockmap, feed, release descriptor and Node.js publishing tools. It does not update the backend, game client or player data. The host needs Node.js 22+ and tar; no npm installation is needed there.
 
-Upload `Conquest-Launcher-Deployment-0.6.8.tar.gz` and its `.sha256` file into the same directory on the dedicated machine. Then run:
+## Create the handoff on Windows
 
-```sh
-sha256sum -c Conquest-Launcher-Deployment-0.6.8.tar.gz.sha256
-mkdir -p "$HOME/coa-launcher-0.6.8"
-tar -xzf Conquest-Launcher-Deployment-0.6.8.tar.gz -C "$HOME/coa-launcher-0.6.8"
-cd "$HOME/coa-launcher-0.6.8"
+Compile a new launcher version with the BAT manager, then use **option 3** to create its hotfix archive and `.sha256` sidecar. Never publish changed binaries under an already released version.
+
+## Publish a manager hotfix
+
+Upload the exact archive and sidecar created by the manager. Verify the sidecar and extract the archive using the filenames printed by the manager. Enter its extracted folder, read its generated `LAUNCHER_DEPLOYMENT.md`, and run:
+
+```bash
+sudo bash PUBLISH-LAUNCHER.sh
+```
+
+The script verifies the payload, asks for the existing published downloads directory and requires the operator to type `PUBLISH`. Its default `/srv/coa/published` is specific to the original deployment: use your actual configured directory.
+
+## Publish an older deployment-tool bundle
+
+A bundle created by `tools/package-launcher.cjs` has the same `launcher-release` and `release-tools` directories but may not have a publishing wrapper. From the extracted bundle:
+
+```bash
 sha256sum -c SHA256SUMS.txt
 sudo node ./release-tools/tools/publish-launcher.cjs ./launcher-release /srv/coa/published
+```
+
+The `sudo node` command publishes the release. Adapt the destination before running it. It verifies installer/blockmap hashes, refuses conflicting bytes under an existing version, publishes immutable versioned files, and updates the feed and stable installer alias. It sets public file permissions explicitly.
+
+## Verify and preserve the deployment
+
+Check your own launcher's HTTPS update URL. For the original project:
+
+```bash
 curl --fail --silent --show-error https://launcher-api.coa-development.org/downloads/launcher/latest.yml
 ```
 
-The `sudo node` command is the publishing step: only run it when ready to release. It verifies the installer and blockmap hashes, publishes immutable versioned files and updates the feed. The feed must report version `0.6.8`, path `ConquestOfAzerothSetup-0.6.8.exe`, and the SHA-512 in the included release descriptor. Existing launchers use the same app ID, feed and installer identity and offer Restart & Update.
+The feed's version, installer filename and SHA-512 must match the included `launcher-release/launcher-release.json`. Confirm the installer and blockmap can be downloaded, then test an installed player's update flow. Keep existing app/feed identity compatible where an in-place update is intended.
 
-If different 0.6.8 bytes have already been published, the publisher refuses to overwrite them. Do not delete published versioned artifacts to bypass this; build a new version instead. The live feed observed during acceptance preparation was 0.6.1.
-
-This package does not require a backend restart, service installation, game republish or installation-folder wipe. Retain existing `/srv/coa` permissions and deployment configuration. Code signing remains unconfigured, as in the existing build; this release is unsigned.
+Launcher publication does not require a backend restart, game republish or installation-folder wipe. Preserve the existing Nginx configuration and private settings. Keep launcher update files publicly readable so older launchers can upgrade before enforcing a new client-download version. Backend updates are separate; see the repository's `UPDATE_0.8.1.md` and `PRODUCTION_DEPLOYMENT.md`.

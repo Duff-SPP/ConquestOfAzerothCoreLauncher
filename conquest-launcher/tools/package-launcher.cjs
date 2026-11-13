@@ -35,7 +35,6 @@ async function run() {
   for (const name of [descriptor.file, descriptor.file + '.blockmap', 'latest.yml', 'launcher-release.json']) await copy(path.join(release, name), 'launcher-release/' + name);
   for (const name of ['tools/publish-launcher.cjs', 'src/release-format.cjs']) await copy(path.join(root, name), 'release-tools/' + name);
   await copy(path.join(root, 'LAUNCHER_DEPLOYMENT.md'), 'LAUNCHER_DEPLOYMENT.md');
-  await copy(path.join(root, 'RELEASE_0.6.8_REPORT.md'), 'RELEASE_0.6.8_REPORT.md');
   const checksumLines = [];
   for (const name of names.sort()) checksumLines.push(createHash('sha256').update(await fs.readFile(path.join(stage, name))).digest('hex') + '  ' + name);
   await fs.writeFile(path.join(stage, 'SHA256SUMS.txt'), checksumLines.join('\n') + '\n');
