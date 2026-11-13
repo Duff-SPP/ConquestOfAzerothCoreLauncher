@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.production/
+.npm-cache/
+.cache/
+reference/
+test-output/
+*.log

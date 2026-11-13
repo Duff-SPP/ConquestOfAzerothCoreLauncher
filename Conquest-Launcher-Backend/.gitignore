@@ -1,0 +1,7 @@
+bin/
+obj/
+deploy/
+test-output/
+appsettings.Local.json
+*.env
+.keys/

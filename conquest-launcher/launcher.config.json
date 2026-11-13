@@ -1,0 +1,34 @@
+{
+  "name": "Conquest of AzerothCore",
+  "clientExecutable": "Ascension.exe",
+  "websiteUrl": "https://coa-development.org/",
+  "apiBaseUrl": "https://launcher-api.coa-development.org/",
+  "discord": {
+    "guildId": "1546991088751874168",
+    "inviteUrl": "https://discord.gg/UV4engmU96"
+  },
+  "realmlist": "logon.coa-development.org",
+  "links": {
+    "account": "https://launcher-api.coa-development.org/#account",
+    "register": "https://launcher-api.coa-development.org/#register",
+    "store": "https://coa-development.org/#store",
+    "wiki": "",
+    "armory": "https://coa-development.org/armory/",
+    "database": "https://ascension-db.ascension-archive.workers.dev/",
+    "discord": "https://discord.gg/UV4engmU96",
+    "support": "",
+    "trailer": "",
+    "bugtracker": "https://github.com/jealous-sound/azerothcore-wotlk-coa/issues",
+    "source": "https://github.com/Duff-SPP/ConquestOfAzerothCoreLauncher"
+  },
+  "databaseEmbedUrl": "https://ascension-db.ascension-archive.workers.dev/",
+  "bugtracker": {
+    "repository": "jealous-sound/azerothcore-wotlk-coa",
+    "submitUrl": ""
+  },
+  "manifestUrl": "https://launcher-api.coa-development.org/downloads/client/latest.json",
+  "newsUrl": "",
+  "launcherUpdateUrl": "https://launcher-api.coa-development.org/downloads/launcher/",
+  "mandatoryAddons": [],
+  "mandatoryAssetFolders": []
+}

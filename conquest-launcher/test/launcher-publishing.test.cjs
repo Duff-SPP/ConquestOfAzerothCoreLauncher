@@ -1,0 +1,27 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs/promises');
+const os = require('node:os');
+const path = require('node:path');
+const { publishLauncher, sha512 } = require('../tools/publish-launcher.cjs');
+test('launcher publishing switches metadata last and rejects a corrupted/reused installer', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'coa-launcher-release-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const source = path.join(root, 'release'); const output = path.join(root, 'published'); await fs.mkdir(source);
+  const file = 'ConquestOfAzerothSetup-0.4.0.exe';
+  await fs.writeFile(path.join(source, file), 'installer fixture');
+  await fs.writeFile(path.join(source, file + '.blockmap'), 'blockmap fixture');
+  const descriptor = { version: '0.4.0', file, size: 17, sha512: await sha512(path.join(source, file)), blockmapSha512: await sha512(path.join(source, file + '.blockmap')) };
+  await fs.writeFile(path.join(source, 'launcher-release.json'), JSON.stringify(descriptor));
+  await publishLauncher(source, output, () => {});
+  const before = await fs.readFile(path.join(output, 'launcher/latest.yml'), 'utf8');
+  assert.match(before, /version: 0.4.0/);
+  assert.equal(await sha512(path.join(output, 'launcher/ConquestOfAzerothSetup.exe')), descriptor.sha512);
+  await fs.writeFile(path.join(source, file), 'corrupt fixture');
+  await assert.rejects(publishLauncher(source, output, () => {}), /verification failed/);
+  assert.equal(await fs.readFile(path.join(output, 'launcher/latest.yml'), 'utf8'), before);
+  descriptor.sha512 = await sha512(path.join(source, file)); descriptor.size = (await fs.stat(path.join(source, file))).size;
+  await fs.writeFile(path.join(source, 'launcher-release.json'), JSON.stringify(descriptor));
+  await assert.rejects(publishLauncher(source, output, () => {}), /already published/);
+  assert.equal(await fs.readFile(path.join(output, 'launcher/latest.yml'), 'utf8'), before);
+});

@@ -1,0 +1,83 @@
+# Conquest Launcher
+
+An Electron launcher and .NET backend for Conquest of AzerothCore, originally developed by **Duff (Duff-SPP)**.
+
+The launcher installs and repairs the game client, manages updates and download speed, supports account sign-in and optional game auto-login, and includes a talent builder. The source includes the interface images, icons, fonts, sound, backend, tests and build tools.
+
+## Build
+
+Requirements: Windows x64, Git, **Node.js 22+**, Windows `tar.exe`, and **.NET SDK 8** for backend builds. Keep npm optional dependencies enabled; the launcher uses Koffi's prebuilt Windows library.
+
+```powershell
+git clone https://github.com/Duff-SPP/ConquestOfAzerothCoreLauncher.git
+cd ConquestOfAzerothCoreLauncher
+cd conquest-launcher
+npm.cmd ci
+cd ..
+& '.\Launcher Manager.bat'
+```
+
+Useful manager options:
+
+| Option | Action |
+| --- | --- |
+| 2 | Build the Windows installer at the current version |
+| 3 | Create a hotfix package from an existing launcher build |
+| 4 | Build the Linux x64 backend |
+| U | Build and package a backend update for an existing installation |
+| 7 | Install locked npm dependencies |
+| 8 | Check prerequisites |
+
+Installers are written to `conquest-launcher/dist/`; delivery packages go in `Release-Output/`. See [Launcher Manager](LAUNCHER_MANAGER.md) for the complete menu and [Build and Release](BUILD_AND_RELEASE.md) for manual commands.
+
+## Use it for your project
+
+Before running the launcher, configure your own services:
+
+1. Update `conquest-launcher/launcher.config.json`. Use `launcher.config.example.json` as a starting point. Set your API, client manifest, game realmlist and community/account URLs.
+2. Update the app identity, icons and launcher update feed in `conquest-launcher/package.json`.
+3. Configure the backend using its example settings and your existing AzerothCore auth/characters databases. Keep real credentials in environment variables, user secrets or ignored local settings.
+4. Supply the game client and addons you are allowed to distribute. Game executables, game archives and player data are not included. The empty addon catalog can be built as-is.
+
+The checked-in configuration points to the original project's public services. Replace those addresses for your fork. Choose a new version before publishing changed binaries.
+
+### Accounts and 2FA
+
+The original deployment uses a separate website service for authentication. Its source is not included here. The launcher API contract is documented in [Authentication](docs/AUTHENTICATION.md).
+
+The bundled backend supports basic SRP account login but **does not validate TOTP or recovery codes**. Accounts requiring 2FA need an authentication service that implements the documented contract.
+
+### Images and other assets
+
+The UI and builder assets are in `conquest-launcher/public/`. Third-party artwork, fonts, trademarks and dependencies retain their own rights; see [Third-party Notices](THIRD_PARTY_NOTICES.md). The code license does not grant rights to every included third-party asset.
+
+## Run and test
+
+After configuring your services:
+
+```powershell
+cd conquest-launcher
+npm.cmd start
+npm.cmd test
+```
+
+Some tests generate local production bundles. Manual smoke scripts may require compiled artifacts. The backend-updater fixture test needs Python 3; set `COA_TEST_PYTHON` if Python is not on PATH.
+
+## Deploy
+
+- [Production deployment](PRODUCTION_DEPLOYMENT.md): new Ubuntu 26.04 x64 host with existing Nginx and MySQL/MariaDB.
+- [Launcher updates](conquest-launcher/LAUNCHER_DEPLOYMENT.md): publish an installer and its update feed.
+- [Existing backend updates](UPDATE_0.8.1.md): update the original installation while preserving its configuration and authentication routing.
+- [Security](SECURITY.md): private configuration and reporting vulnerabilities.
+
+The installer and updater use the original project's paths and service layout. Review them before running them on another host. Build, package and publish are separate steps.
+
+## License and credit
+
+Original code is licensed under **GPLv3-only with author-attribution and origin terms**. See [LICENSE](LICENSE), [COPYING](COPYING) and [ATTRIBUTION.md](ATTRIBUTION.md).
+
+You may fork, rename and modify the launcher. Distributed forks must provide the corresponding source under the license, identify their changes and preserve an accessible original-author credit:
+
+> Originally developed by Duff (Duff-SPP) as Conquest Launcher.
+
+You can add your own credits for your modifications. The software is provided without warranty.
