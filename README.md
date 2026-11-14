@@ -1,5 +1,10 @@
 # Conquest Launcher
 
+[![Stars](https://img.shields.io/github/stars/Duff-SPP/ConquestOfAzerothCoreLauncher?style=flat)](https://github.com/Duff-SPP/ConquestOfAzerothCoreLauncher/stargazers)
+[![Forks](https://img.shields.io/github/forks/Duff-SPP/ConquestOfAzerothCoreLauncher?style=flat)](https://github.com/Duff-SPP/ConquestOfAzerothCoreLauncher/forks)
+
+[Who starred](https://github.com/Duff-SPP/ConquestOfAzerothCoreLauncher/stargazers) · [Forks and their owners](https://github.com/Duff-SPP/ConquestOfAzerothCoreLauncher/forks) · [Traffic (maintainers)](https://github.com/Duff-SPP/ConquestOfAzerothCoreLauncher/graphs/traffic)
+
 An Electron launcher and .NET backend for Conquest of AzerothCore, originally developed by **Duff (Duff-SPP)**.
 
 The launcher installs and repairs the game client, manages updates and download speed, supports account sign-in and optional game auto-login, and includes a talent builder. The source includes the interface images, icons, fonts, sound, backend, tests and build tools.
